@@ -16,12 +16,11 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <signal.h>
+#include "config.h"
+#include "log.h"
+#include "common.h"
 
 #define MAIN_THREAD_LOOP_INTERVAL 5
-#define SUCCESS 0
-#define TRUE 1
-#define FALSE 0
-
 static int g_keepMainRunning;
 
 static void PrintUsage(const char *args[])
@@ -31,6 +30,16 @@ static void PrintUsage(const char *args[])
 
 static int BaseInit(void)
 {
+    int ret = SUCCESS;
+    ret = InitConfig();
+    if (ret != SUCCESS) {
+        return ret;
+    }
+
+    ret = InitLogger();
+    if (ret != SUCCESS) {
+        return ret;
+    }
     // todo 其他必要的初始化
     return SUCCESS;
 }
@@ -38,6 +47,7 @@ static int BaseInit(void)
 static void ClearEnv(void)
 {
     // todo：必要的环境清理动作
+    ClearLogger();
 }
 
 static void SignalHandler(int none)
@@ -65,7 +75,7 @@ int main(int argc, const char *args[])
 
     ret = BaseInit();
     if (ret != SUCCESS) {
-        // Logger(ERROR, MD_NM_MAN, "BaseInit failed. ret:%d", ret);
+        Logger(ERROR, MD_NM_MAN, "BaseInit failed. ret:%d", ret);
         exit(-1);
     }
 
@@ -75,7 +85,9 @@ int main(int argc, const char *args[])
     while (g_keepMainRunning) {
         sleep(MAIN_THREAD_LOOP_INTERVAL);
         count++;
-        // todo
+        if (count % (GetTimerCfg()->cfgUpdataInterval / MAIN_THREAD_LOOP_INTERVAL) == 0) {
+            CheckAndUpdateConfig();
+        }
     }
     ClearEnv();
     return 0;

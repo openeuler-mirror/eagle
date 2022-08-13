@@ -9,7 +9,7 @@ desc=optimaze for high energy efficiency
 freq_governor=seep
 
 #CpuIdle governor, options: menu, teo
-idle_governro=menu
+idle_governor=menu
 
 # PM QOS. cpu&dma latency.
 # -1: dynamic tuning;
