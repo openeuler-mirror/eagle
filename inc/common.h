@@ -45,16 +45,15 @@
 #define OVER_GET_DT_LEN 2010
 
 // Define module name
-#define MD_NM_PST "PERSIST"
-#define MD_NM_GTH "GATHER"
+#define MD_NM_MAN "MAIN"
 #define MD_NM_LOG "LOG"
 #define MD_NM_CFG "CONFIG"
-#define MD_NM_SGR "SERV_MGR"
-#define MD_NM_DSV "DT_SERV"
-#define MD_NM_SVR "SERVER"
-#define MD_NM_NET "NET"
-#define MD_NM_MAN "MAIN"
-#define MD_NM_SVR_CPU "CPU_SERVICE"
+#define MD_NM_PCYS "PCY_SERC"
+#define MD_NM_DCTRL "DEV_CTRL"
+#define MD_NM_PMGR "PLUGIN_MGR"
+#define MD_NM_DCOLL "DATA_COLL"
+#define MD_NM_PLG "PLUGIN"
+#define MD_NM_PCY "POLICY"
 
 // Define configuration section name
 #define CFG_NM_LOG "log"
@@ -101,7 +100,7 @@
 #define MAX_PATH_NAME 128
 #define MAX_FULL_NAME (MAX_FILE_NAME + MAX_PATH_NAME)
 // Comment char
-#define INI_START_COMMENT_PREFIXES "#"
+#define COMMENT_PREFIXES "#"
 // Max config line length
 #define MAX_LINE_NUM 3000
 // Max log head length
@@ -249,6 +248,9 @@ enum RtnCode {
     ERR_NOT_REGISTED = 100,
     ERR_OVER_MAX_CONNECTION,
     ERR_DISCONNECTED = 300,
+
+    ERR_FILE_NOT_EXIST = 400,
+    ERR_FILE_CONTENT_ERROR,
 };
 
 #endif

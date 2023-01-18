@@ -8,31 +8,15 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: luocaimin
- * Create: 2022-03-29
- * Description: provide common methods
+ * Author: queyanwen
+ * Create: 2022-06-23
+ * Description: provide configuration service
  * **************************************************************************** */
-#ifndef EAGLE_UTILS_H__
-#define EAGLE_UTILS_H__
+#ifndef EAGLE_POLICY_SERVICE_H__
+#define EAGLE_POLICY_SERVICE_H__
 
-/**
- * Return the current time string in the specified format
- */
-const char *GetCurFmtTmStr(const char *fmt, char *strTime, int bufLen);
-
-/**
- * GetCurFullTime - return current time as "%Y - %m - %d %H:%M:%S.mss"
- */
-const char *GetCurFullTime(char *fullTime, int bufLen);
-
-// Create a multi - level directory
-int MkDirs(const char *sDirName);
-
-/*
- * IsNumStr - Check if the string is a numeric string
- * Note: return 1 for sure
- */
-int IsNumStr(const char *pStr);
-int NumRangeChk(const char *pStr, long min, long max);
-char *Rtrim(char *str);
+int InitPolicyService(void);
+int StartPolicyService(void);
+void StopPolicyService(void);
+void CheckAndUpdatePolicy(void);
 #endif
