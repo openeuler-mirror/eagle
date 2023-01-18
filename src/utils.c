@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <ctype.h>
 #include "common.h"
 static struct timeval GetCurTv(void)
 {
@@ -106,4 +107,47 @@ int MkDirs(const char *sDirName)
         }
     }
     return SUCCESS;
+}
+int IsNumStr(const char *pStr)
+{
+    int len;
+    int idx;
+    if (pStr == NULL) {
+        return 0;
+    }
+    len = strlen(pStr);
+    for (idx = 0; idx < len; ++idx) {
+        if (!isdigit(pStr[idx])) {
+            return 0;
+        }
+    }
+    return 1;
+}
+int NumRangeChk(const char *pStr, long min, long max)
+{
+    int tmp;
+    tmp = 0;
+
+    if (!IsNumStr(pStr)) {
+        return 0;
+    }
+    if (sscanf(pStr, "%d", &tmp) < 0) {
+        return 0;
+    }
+    if (tmp < min || tmp > max) {
+        return 0;
+    }
+    return 1;
+}
+// Find the last nonspace postion, return pointer
+char *Rtrim(char *s)
+{
+    if (s == NULL) {
+        return NULL;
+    }
+    char *p = s + strlen(s);
+    while (p - s > 0 && isspace((unsigned char)(*--p))) {
+        *p = '\0';
+    }
+    return s;
 }

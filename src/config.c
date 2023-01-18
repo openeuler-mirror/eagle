@@ -10,7 +10,7 @@
  * See the Mulan PSL v2 for more details.
  * Author: queyanwen
  * Create: 2022-06-23
- * Description: loading config file and manager all config items for the PowerAPI service
+ * Description: loading config file and manager all config items for eagle
  * **************************************************************************** */
 
 #include "config.h"
@@ -51,10 +51,10 @@ static int InitLogCfg(void)
 static int InitPolicyCfg(void)
 {
     bzero(&g_policyCfg, sizeof(g_policyCfg));
-    strncpy(g_policyCfg.policyFile, DEFAULT_POLICY_FILE_PATH, sizeof(g_policyCfg.policyFile) -1);
-    strncpy(g_policyCfg.cpuPlugin, DEFAULT_CPU_PLUGIN, sizeof(g_policyCfg.cpuPlugin) -1);
-    strncpy(g_policyCfg.diskPlugin, DEFAULT_DISK_PLUGIN, sizeof(g_policyCfg.diskPlugin) -1);
-    strncpy(g_policyCfg.nicPlugin, DEFAULT_NIC_PLUGIN, sizeof(g_policyCfg.nicPlugin) -1);
+    strncpy(g_policyCfg.policyFile, DEFAULT_POLICY_FILE_PATH, sizeof(g_policyCfg.policyFile) - 1);
+    strncpy(g_policyCfg.cpuPlugin, DEFAULT_CPU_PLUGIN, sizeof(g_policyCfg.cpuPlugin) - 1);
+    strncpy(g_policyCfg.diskPlugin, DEFAULT_DISK_PLUGIN, sizeof(g_policyCfg.diskPlugin) - 1);
+    strncpy(g_policyCfg.nicPlugin, DEFAULT_NIC_PLUGIN, sizeof(g_policyCfg.nicPlugin) - 1);
     return SUCCESS;
 }
 

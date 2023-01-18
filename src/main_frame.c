@@ -19,6 +19,7 @@
 #include "config.h"
 #include "log.h"
 #include "common.h"
+#include "policyservice.h"
 
 #define MAIN_THREAD_LOOP_INTERVAL 5
 static int g_keepMainRunning;
@@ -37,6 +38,11 @@ static int BaseInit(void)
     }
 
     ret = InitLogger();
+    if (ret != SUCCESS) {
+        return ret;
+    }
+
+    ret = InitPolicyService();
     if (ret != SUCCESS) {
         return ret;
     }
@@ -78,6 +84,11 @@ int main(int argc, const char *args[])
         Logger(ERROR, MD_NM_MAN, "BaseInit failed. ret:%d", ret);
         exit(-1);
     }
+    ret = StartPolicyService();
+    if (ret != SUCCESS) {
+        Logger(ERROR, MD_NM_MAN, "StartPolicyService failed. ret:%d", ret);
+        exit(-1);
+    }
 
     SetupSignal();
     g_keepMainRunning = TRUE;
@@ -88,7 +99,11 @@ int main(int argc, const char *args[])
         if (count % (GetTimerCfg()->cfgUpdataInterval / MAIN_THREAD_LOOP_INTERVAL) == 0) {
             CheckAndUpdateConfig();
         }
+        if (count % (GetTimerCfg()->policyUpdateInterval / MAIN_THREAD_LOOP_INTERVAL) == 0) {
+            CheckAndUpdatePolicy();
+        }
     }
+    StopPolicyService();
     ClearEnv();
     return 0;
 }
