@@ -1,0 +1,13 @@
+[Unit]
+Description=mpctool service
+After=network.target
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/mpctool auto
+Restart=on-failure
+RestartSec=1
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
