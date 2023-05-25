@@ -13,6 +13,8 @@ import pandas as pd
 import numpy as np
 from mpctool.data_collector.running_data_collector import collect_stable_thermal_data
 from mpctool.data_collector.data_processor import process_stable_training_data
+from mpctool.data_collector.data_processor import predict_stable_power
+from mpctool.data_collector.data_processor import search_best_lowspeed
 from mpctool.model_trainer.maintain_model import train_stable_model
 from mpctool.model_trainer.maintain_model import train_power_func_model
 from mpctool.model_trainer.maintain_model import initialize_model
@@ -24,11 +26,14 @@ from mpctool.ipmi_opt import mpc_controller as mpcc
 class Tst(object):
     """ The current state of the task. """
     manual_mode = True
+    long_term_sleep_times = 0
     sys_state = None
     change_version = None
     avg_inlet_temp = None
     avg_stable_power = None
+    lowest_fanspeed = None
     collected_data = pd.DataFrame()
+    unstable_data = pd.DataFrame()
     processed_data = pd.DataFrame()
     model_params = None
 
@@ -121,10 +126,13 @@ def _collect_data():
     step1: Collecting data
     """
     Tst.collected_data = pd.DataFrame()
-    result, Tst.collected_data = collect_stable_thermal_data(CST.COLLECTING_INTERVAL)
-    if not result:
+    Tst.unstable_data = pd.DataFrame()
+    result, Tst.collected_data, Tst.unstable_data = collect_stable_thermal_data(CST.COLLECTING_INTERVAL)
+    if result != CST.COLL_STATE_VALID and result != CST.COLL_STATE_VALID_NEED_FIT:
         Tst.collected_data = pd.DataFrame()
+        Tst.unstable_data = pd.DataFrame()
     logging.debug("Collected data:\n%s", Tst.collected_data)
+    logging.debug("Unstable data:\n%s", Tst.unstable_data)
     return result
 
 
@@ -150,12 +158,10 @@ def _train_models():
     if np.isnan(Tst.avg_inlet_temp) or np.isnan(Tst.avg_stable_power):
         logging.error("Invalid data. inlet_temp:%0.2f, stable_data:%0.2f",
                       Tst.avg_stable_power, Tst.avg_inlet_temp)
-        Tst.sys_state = CST.SYS_STATE_COLLECTING
         return False
     if Tst.avg_inlet_temp > CST.MAX_ENV_TEMP:
         logging.error("Average Environment Temp is out of range[%0.1f, %0.1f]. inlet_temp:%0.2f",
                       CST.MIN_ENV_TEMP, CST.MAX_ENV_TEMP, Tst.avg_inlet_temp)
-        Tst.sys_state = CST.SYS_STATE_COLLECTING
         return False
 
     feature = ["FanSpeedPercent"]
@@ -167,10 +173,18 @@ def _train_models():
         Tst.processed_data, model, feature, output)
     model = initialize_model("single", model_degree, best_power_degree)
     train_stable_model(Tst.processed_data, model, feature, output)
-
     Tst.model_params = model.get_model_params()
-    logging.info("Training result: inlet_temp: %0.1f, stable_power: %0.1f, model_params: %s",
-                 Tst.avg_inlet_temp, Tst.avg_stable_power, Tst.model_params)
+
+    if len(Tst.unstable_data) > 0:
+        ret, fitted_fd = predict_stable_power(Tst.unstable_data)
+        if not ret:
+            logging.error("Predict stable power failed.")
+            return False
+        Tst.lowest_fanspeed = search_best_lowspeed(pd.concat([Tst.collected_data, fitted_fd], ignore_index=True))
+    else:
+        Tst.lowest_fanspeed = search_best_lowspeed(Tst.collected_data)
+    logging.info("Training result: inlet_temp: %0.1f, stable_power: %0.1f, lowest_fanspeed:%0.1f, model_params: %s",
+                 Tst.avg_inlet_temp, Tst.avg_stable_power, Tst.lowest_fanspeed, Tst.model_params)
     return True
 
 
@@ -180,7 +194,7 @@ def _send_model_params():
     """
     for _ in range(3):
         if mpcc.send_model_to_bmc(Tst.change_version, Tst.avg_inlet_temp,
-                                  Tst.avg_stable_power, Tst.model_params):
+                                  Tst.avg_stable_power, Tst.lowest_fanspeed, Tst.model_params):
             return True
         else:
             time.sleep(CST.CHECK_UPDATE_INTERVAL)
@@ -209,6 +223,10 @@ def main():
         _update_sys_state()
         if Tst.sys_state == CST.SYS_STATE_NONE:
             continue
+        if Tst.long_term_sleep_times > CST.MAX_LONG_TERM_SLEEP_TIMES:
+            logging.error("System exit due to long_term_sleep over %d times",
+                          CST.MAX_LONG_TERM_SLEEP_TIMES)
+            sys.exit(3)
 
         # step1. Collecting data
         if Tst.sys_state == CST.SYS_STATE_COLLECTING:
@@ -216,12 +234,19 @@ def main():
             print("step1: start collecting, this may last 20 minutes...")
             _loop_to_could_start_collecting()
             _update_sys_state()
-            if _collect_data():
+            result = _collect_data()
+            if result == CST.COLL_STATE_VALID or result == CST.COLL_STATE_VALID_NEED_FIT:
                 Tst.sys_state = CST.SYS_STATE_TRAINING
                 _update_sys_state()
-            else:
-                logging.warning("Collecting data failed. Try again later.")
+            elif result == CST.COLL_STATE_INVALID_LONG:
+                Tst.long_term_sleep_times += 1
+                logging.warning("Collecting data failed. Try again %d minutes later.", CST.LONG_TERM_SLEEP_TIME / 60)
+                time.sleep(CST.LONG_TERM_SLEEP_TIME)
                 continue
+            else:
+                logging.warning("Collecting data failed. Try again %d seconds later.", CST.CHECK_UPDATE_INTERVAL)
+                continue
+            Tst.long_term_sleep_times = 0
 
         # step2: Training model
         if Tst.sys_state == CST.SYS_STATE_TRAINING:
@@ -231,6 +256,7 @@ def main():
                 Tst.sys_state = CST.SYS_STATE_SEND_MODEL
             else:
                 logging.warning("Training model failed. Try again later.")
+                Tst.sys_state = CST.SYS_STATE_COLLECTING
                 continue
 
         # step3: Sending model params
