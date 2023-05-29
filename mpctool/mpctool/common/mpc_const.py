@@ -21,6 +21,8 @@ CPU_USAGE_STOP_TH = 1.5     # percentage
 CHECK_UPDATE_INTERVAL = 10  # seconds. Interval for retry loop.
 LOW_USAGE_LASTING_TIMES_TH = 6
 COLLECTING_INTERVAL = 1     # seconds. Interval for collecting.
+MAX_LONG_TERM_SLEEP_TIMES = 5
+LONG_TERM_SLEEP_TIME = 30 * 60  # seconds
 
 # The training result is valid only when the environment temperature
 #    is between [MIN_ENV_TEMP, MAX_ENV_TEMP].
@@ -34,3 +36,14 @@ LOG_FILE_FILENAME_M = LOG_FILE_PATH + "/mpctool_m.log"
 LOG_LEVEL = "info"     # debug, info, warn, error, critical
 LOG_FILE_COUNT = 3
 LOG_FILE_SIZE = 5 * 1024 * 1024     # bytes
+
+# BMC state
+BMC_STATE_NORMAL = "00"
+BMC_STATE_SYS_EXCEPTION = "fe"
+BMC_STATE_DATA_EXCEPTION = "ff"
+
+# Collecting state
+COLL_STATE_VALID = 0           # collecting data is valid
+COLL_STATE_VALID_NEED_FIT = 1  # collecting data is valid, but fitting is needed
+COLL_STATE_INVALID_SHORT = 2   # collecting data is invalide, could retry after a short term
+COLL_STATE_INVALID_LONG = 3    # coolecting data is invalide, could retry after a long term

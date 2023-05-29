@@ -9,7 +9,7 @@ import struct
 import re
 import logging
 from mpctool.common.sys_tool import exec_shell_cmd
-
+from mpctool.common import mpc_const as CST
 
 SUCCUSS_RSP_FLAG = "db0700"
 
@@ -23,9 +23,10 @@ def _insert_hex_flag(src_string):
 
 CMD_DATA_COLL = "ipmitool raw 0x30 0x92 0xdb 0x07 0x00 0x27 0x01 0x00"
 NORMAL_STATE_FLAG = "00"  # The FLAG of normal state from BMC
+SYS_EXP_FLAG = "fe"  # The FLAG of system exception state
 
 
-def get_sys_state():
+def get_sys_state(content):
     """
     Request: collecting current state
     Response format: db 07 00 44 01 1c 28 22 00 28 00
@@ -37,17 +38,18 @@ def get_sys_state():
     8       CPU Temperature
     9:10    Fan total power
     11      Fan Speed Percentage
-    12      Status. 00: normal  ff: unormal
+    12      Status. 00: normal  ff: data exception  fe: system exception
     """
     rsp = exec_shell_cmd(CMD_DATA_COLL).replace(" ", "").lower()
     logging.debug("get_sys_state. cmd: %s, rsp: %s", CMD_DATA_COLL, rsp)
     if SUCCUSS_RSP_FLAG not in rsp:
         logging.error("get_sys_state command failure by ipmitool.")
         return None
-    if rsp[-2:] != NORMAL_STATE_FLAG:
-        logging.warning("Exception happens during collection")
-        return None
-    content = {}
+    status = rsp[-2:]
+    if status != CST.BMC_STATE_NORMAL:
+        logging.warning("Exception happens during collection. status:%s", status)
+        return status
+
     base = rsp.index(SUCCUSS_RSP_FLAG) + len(SUCCUSS_RSP_FLAG)
     content["PowerConsumedWatts"] = int(
         rsp[base + 2: base + 4] + rsp[base: base + 2], 16)
@@ -60,7 +62,7 @@ def get_sys_state():
         rsp[base + 2: base + 4] + rsp[base: base + 2], 16)
     base = base + 4
     content["FanSpeedPercent"] = int(rsp[base: base + 2], 16)
-    return content
+    return CST.BMC_STATE_NORMAL
 
 
 # ipmitool Check if there is device change
@@ -112,7 +114,7 @@ BYTE_STEP = 256
 UPDATE_SUCCESS_FLAG = "00"
 
 
-def send_model_to_bmc(change_version, inlet_temp, stable_power, model_data):
+def send_model_to_bmc(change_version, inlet_temp, stable_power, lowest_fanspeed, model_data):
     """
     Request: Send model to BMC.
     Data Bytes after CMD_SEND_MODEL_PREFIX:
@@ -122,6 +124,7 @@ def send_model_to_bmc(change_version, inlet_temp, stable_power, model_data):
     5       inlet temp
     6:7     stable power
     8:N     model data
+    N+1     lowest fan speed
 
     Response format: db 07 00
     Rsp Bytes descripton:
@@ -129,10 +132,10 @@ def send_model_to_bmc(change_version, inlet_temp, stable_power, model_data):
     2:4     flag. fixed: OXdb0700
     5       status. 00: Succeed ff: failed
     """
-    logging.debug("change_version: %d, inlet_temp: %0.2f, stable_power: %0.2f, model_data:%s",
-                  change_version, inlet_temp, stable_power, model_data)
+    logging.debug("change_version: %d, inlet_temp: %0.2f, stable_power: %0.2f, lowest_fanspeed:%0.2f, model_data:%s",
+                  change_version, inlet_temp, stable_power, lowest_fanspeed, model_data)
     print("Model Params: change_version:", change_version, "inlet_temp:",
-          round(inlet_temp, 2), "model_data:", model_data)
+          round(inlet_temp, 2), "lowest_fanspeed:", lowest_fanspeed, "model_data:", model_data)
 
     if change_version > BYTE_STEP * BYTE_STEP or \
             change_version <= -(BYTE_STEP * BYTE_STEP):
@@ -153,15 +156,20 @@ def send_model_to_bmc(change_version, inlet_temp, stable_power, model_data):
     stable_power = int(stable_power)
     stable_power_str = _insert_hex_flag(struct.pack("H", stable_power).hex()) + " "
 
-    data_len = 6 + 8 * len(model_data)
+    data_len = 6 + 8 * len(model_data) + 1
     if data_len > BYTE_STEP or data_len <= 4:
         logging.error("Invalid data_len: %d", data_len)
         return False
-
     data_str = " ".join([_insert_hex_flag(struct.pack("d", param).hex()) for param in model_data])
 
-    cmd = CMD_SEND_MODEL_PREFIX + str(hex(data_len)) + " " + change_version_str + \
-          MODEL_TYPE + str(hex(inlet_temp)) + " " + stable_power_str + data_str
+    if lowest_fanspeed > BYTE_STEP or lowest_fanspeed < -(BYTE_STEP - 1):
+        logging.error("Invalid lowest_fanspeed: %d", lowest_fanspeed)
+        return False
+    lowest_fanspeed = int(lowest_fanspeed)
+
+    cmd = CMD_SEND_MODEL_PREFIX + str(hex(data_len)) + " " + change_version_str + MODEL_TYPE \
+          + str(hex(inlet_temp)) + " " + stable_power_str + data_str + " " + str(hex(lowest_fanspeed))
+
     rsp = exec_shell_cmd(cmd).replace(" ", "").lower()
     logging.debug("send_model_to_bmc. cmd: %s, rsp: %s", cmd, rsp)
     if SUCCUSS_RSP_FLAG not in rsp:

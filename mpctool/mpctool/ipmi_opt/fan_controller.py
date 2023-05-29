@@ -7,7 +7,6 @@ Fan controller
 import subprocess
 from mpctool.common.sys_tool import exec_shell_cmd
 
-
 # ipmitool. Cmd prefix
 CMD_SET_FAN_SPEED = "ipmitool raw 0x2c 0x15 0x02 0x00 "
 
