@@ -176,3 +176,13 @@ def collect_stable_thermal_data(interval):
 
     stool.set_current_freq_governor(orgin_gov)
     return result, stable_data, unstable_data
+
+def get_curr_inlet_temp():
+    """
+    Get the current inlet temperature
+    Return:  result:bool, InletTemp: float
+    """
+    content = {}
+    if mpcc.get_sys_state(content) == CST.BMC_STATE_NORMAL:
+        return True, content["InletTemp"]
+    return False, 0.0

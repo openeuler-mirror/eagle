@@ -12,8 +12,9 @@ from logging.handlers import RotatingFileHandler
 import pandas as pd
 import numpy as np
 from mpctool.data_collector.running_data_collector import collect_stable_thermal_data
+from mpctool.data_collector.running_data_collector import get_curr_inlet_temp
 from mpctool.data_collector.data_processor import process_stable_training_data
-from mpctool.data_collector.data_processor import predict_stable_power
+from mpctool.data_collector.data_processor import predict_stable_power_and_temp
 from mpctool.data_collector.data_processor import search_best_lowspeed
 from mpctool.model_trainer.maintain_model import train_stable_model
 from mpctool.model_trainer.maintain_model import train_power_func_model
@@ -107,19 +108,43 @@ def _update_sys_state():
 
 
 def _loop_to_could_start_collecting():
-    low_usage_lasting_times = 0
+    '''
+    Check the system status to ensure that the collection conditions are met.
+    1. CPU usage is lower than CPU_USAGE_SEC_TH for at least
+       CHECK_UPDATE_INTERVAL * LOW_USAGE_LASTING_TIMES_TH seconds.
+    2. The inlet temperature is not higher than MAX_ENV_TEMP.
+    '''
+    cond_met_lasting_times = 0
     while True:
+        time.sleep(CST.CHECK_UPDATE_INTERVAL)
+
         if not stool.check_cpu_usage(CST.CPU_USAGE_SEC_TH):
-            logging.debug("The CPU usage exceeds the threshold: %0.1f%%",
+            logging.warning("The CPU usage exceeds the threshold: %0.1f%%",
                           CST.CPU_USAGE_SEC_TH)
-            low_usage_lasting_times = 0
-            time.sleep(CST.CHECK_UPDATE_INTERVAL)
-        elif low_usage_lasting_times < CST.LOW_USAGE_LASTING_TIMES_TH:
-            low_usage_lasting_times += 1
-            time.sleep(CST.CHECK_UPDATE_INTERVAL)
+            cond_met_lasting_times = 0
+            continue
+
+        ret, inlet_t = get_curr_inlet_temp()
+        if not ret or inlet_t > CST.MAX_ENV_TEMP:
+            logging.warning("Get inlet temp failed or the inlet temp exceeds the threshold: %0.1f%%, ret:%d",
+                          CST.MAX_ENV_TEMP, ret)
+            cond_met_lasting_times = 0
+            continue
+
+        if cond_met_lasting_times < CST.LOW_USAGE_LASTING_TIMES_TH:
+            cond_met_lasting_times += 1
         else:
             break
 
+
+def _preprocess_unstable_data():
+    if len(Tst.unstable_data) > 0:
+        ret, fitted_fd = predict_stable_power_and_temp(Tst.unstable_data)
+        if not ret:
+            logging.error("Predict stable power failed.")
+            return False
+        Tst.collected_data = pd.concat([Tst.collected_data, fitted_fd], ignore_index=True)
+    return True
 
 def _collect_data():
     """
@@ -140,6 +165,9 @@ def _train_models():
     """
     step2: Training model.
     """
+    if not _preprocess_unstable_data():
+        return False
+
     intervals = [1, 1]
     hwdata_cols = ["cpu_freq", "cpu_percent"]
     bmc_cols = [
@@ -175,14 +203,7 @@ def _train_models():
     train_stable_model(Tst.processed_data, model, feature, output)
     Tst.model_params = model.get_model_params()
 
-    if len(Tst.unstable_data) > 0:
-        ret, fitted_fd = predict_stable_power(Tst.unstable_data)
-        if not ret:
-            logging.error("Predict stable power failed.")
-            return False
-        Tst.lowest_fanspeed = search_best_lowspeed(pd.concat([Tst.collected_data, fitted_fd], ignore_index=True))
-    else:
-        Tst.lowest_fanspeed = search_best_lowspeed(Tst.collected_data)
+    Tst.lowest_fanspeed = search_best_lowspeed(Tst.collected_data)
     logging.info("Training result: inlet_temp: %0.1f, stable_power: %0.1f, lowest_fanspeed:%0.1f, model_params: %s",
                  Tst.avg_inlet_temp, Tst.avg_stable_power, Tst.lowest_fanspeed, Tst.model_params)
     return True
