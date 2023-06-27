@@ -2,5 +2,4 @@
 
 cd eagle
 sh build.sh
-
-
+exit $?
