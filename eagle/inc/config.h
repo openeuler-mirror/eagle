@@ -29,6 +29,11 @@
 #define DEFAULT_DISK_PLUGIN "libealgedisk.so"
 #define DEFAULT_NIC_PLUGIN "libeaglenic.so"
 
+#define DEFAULT_CONFIG_ITEM_TYPE (-1)
+#define CNF_ITEM_CNT 12
+#define MAX_FILE_SIZE 20
+#define MAX_CMP_CNT 10
+
 // LogCfg
 enum LogLevel {
     DEBUG = 0,
@@ -36,6 +41,26 @@ enum LogLevel {
     WARNING,
     ERROR
 };
+
+enum CnfItemType {
+    E_CFG_IT_FLS,
+    E_CFG_IT_CNT,
+    E_CFG_IT_LGV,
+    E_CFG_IT_LGP,
+    E_CFG_IT_BKP,
+    E_CFG_IT_PFX,
+    E_CFG_IT_PCY,
+    E_CFG_IT_CPU,
+    E_CFG_IT_DSK,
+    E_CFG_IT_NET,
+    E_CFG_IT_CFG_UPD_INTVL,
+    E_CFG_IT_PCY_UPD_INTVL
+};
+
+typedef struct CnfItem {
+    enum CnfItemType itemType;
+    char *itemName;
+} CnfItem;
 
 typedef struct LogCfg {
     uint64_t maxFileSize;
