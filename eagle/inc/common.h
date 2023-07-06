@@ -77,6 +77,12 @@
 #define CFG_IT_CFG_UPD_INTVL "config_update_interval"
 #define CFG_IT_PCY_UPD_INTVL "policy_update_interval"
 
+// Max filename length
+#define MAX_NAME_LEN 128
+// Max MD5 length
+#define MD5_LEN 33
+
+
 // Max line length
 #define MAX_LINE_LENGTH 256
 // Max type collect items
@@ -245,6 +251,9 @@ enum RtnCode {
     ERR_SYS_EXCEPTION,
     ERR_NULL_POINTER,
     ERR_INVALIDE_PARAM,
+    ERR_MODIFY_BAN_UPDATE_ATTR_CURRENTLY,
+    ERR_PATH_NORMALIZE,
+    ERR_PATH_VERIFY,
     ERR_NOT_REGISTED = 100,
     ERR_OVER_MAX_CONNECTION,
     ERR_DISCONNECTED = 300,

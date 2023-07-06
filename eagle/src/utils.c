@@ -151,3 +151,71 @@ char *Rtrim(char *s)
     }
     return s;
 }
+
+static void StrCopy(char *dest, const char *src, int destSize)
+{
+    unsigned int len = strlen(src) < destSize ? strlen(src) : destSize - 1;
+    strncpy(dest, src, len);
+    dest[len] = '\0';
+}
+
+int GetMd5(const char *filename, char *md5)
+{
+    char md5Cmd[MAX_NAME_LEN];
+    const char s1[] = "md5sum ";
+    const char s2[] = " | awk '{print $1}'";
+    StrCopy(md5Cmd, s1, MAX_NAME_LEN);
+    strncat(md5Cmd, filename, strlen(filename));
+    strncat(md5Cmd, s2, strlen(s2));
+    FILE *fp = popen(md5Cmd, "r");
+    if (fp == NULL) {
+        return ERR_NULL_POINTER;
+    }
+    char buf[MD5_LEN] = {0};
+    if (fgets(buf, sizeof(buf), fp) == NULL) {
+        pclose(fp);
+        return ERR_COMMON;
+    }
+    strncpy(md5, buf, sizeof(buf));
+    pclose(fp);
+    return SUCCESS;
+}
+
+// Remove the front and the last spaces of str.
+void LRtrim(char *str)
+{
+    size_t length = strlen(str);
+    int head = 0;
+    int tail = length - 1;
+    while (isspace(str[head])) {
+        head++;
+    }
+    while (isspace(str[tail])) {
+        tail--;
+    }
+    int i;
+    for (i = 0; i <= tail - head; i++) {
+        str[i] = str[head + i];
+    }
+    str[i] = '\0';
+}
+
+int NormalizeAndVerifyFilepath(const char *filename, char *realpathRes)
+{
+    if (realpathRes == NULL || filename == NULL) {
+        return ERR_PATH_NORMALIZE;
+    }
+    char *path = NULL;
+    path = realpath(filename, NULL);
+    if (path == NULL) {
+        return ERR_NULL_POINTER;
+    }
+    strncpy(realpathRes, path, strlen(path));
+    // Verify file path
+    if (access(realpathRes, F_OK) != 0) {
+        free(path);
+        return ERR_PATH_VERIFY;
+    }
+    free(path);
+    return SUCCESS;
+}

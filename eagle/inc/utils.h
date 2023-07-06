@@ -34,5 +34,8 @@ int MkDirs(const char *sDirName);
  */
 int IsNumStr(const char *pStr);
 int NumRangeChk(const char *pStr, long min, long max);
+int GetMd5(const char *filename, char *md5);
 char *Rtrim(char *str);
+void LRtrim(char *str);
+int NormalizeAndVerifyFilepath(const char *filename, char *realpathRes);
 #endif
