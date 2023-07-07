@@ -12,11 +12,8 @@
  * Create: 2022-06-23
  * Description: provide configuration service
  * **************************************************************************** */
-#ifndef EAGLE_POLICY_SERVICE_H__
-#define EAGLE_POLICY_SERVICE_H__
+#ifndef EAGLE_SERVICE_MGR_H__
+#define EAGLE_SERVICE_MGR_H__
 
-int InitPolicyService(void);
-int StartPolicyService(void);
-void StopPolicyService(void);
-void CheckAndUpdatePolicy(void);
+int InitServiceMgr(void);
 #endif

@@ -1,5 +1,5 @@
 /* *****************************************************************************
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022 All rights reserved.
  * eagle licensed under the Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
@@ -10,10 +10,12 @@
  * See the Mulan PSL v2 for more details.
  * Author: queyanwen
  * Create: 2022-06-23
- * Description: provide configuration service
+ * Description: loading config file and manager all config items for the PowerAPI service
  * **************************************************************************** */
-#ifndef EAGLE_PLUGIN_MGR_H__
-#define EAGLE_PLUGIN_MGR_H__
 
-int InitPluginMgr(void);
-#endif
+#include "servicemgr.h"
+
+int InitServiceMgr(void)
+{
+    // todo
+}

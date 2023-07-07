@@ -12,13 +12,13 @@
  * Create: 2022-06-23
  * Description: loading config file and manager all config items for the PowerAPI service
  * **************************************************************************** */
-#include "policyservice.h"
+#include "eaglecore.h"
 
 #include "common.h"
 #include "log.h"
 #include "config.h"
 #include "devicectrl.h"
-#include "pluginmgr.h"
+#include "servicemgr.h"
 #include "datacollect.h"
 #include "policy.h"
 
@@ -70,16 +70,16 @@ static void EndPolicy(void)
 }
 
 /* ****************public**************************************** */
-int InitPolicyService(void)
+int InitEagleSystem(void)
 {
     int ret = InitDevCtrl();
     if (ret != SUCCESS) {
         Logger(ERROR, MD_NM_PCYS, "InitDevCtrl failed. ret:%d", ret);
         return ret;
     }
-    ret = InitPluginMgr();
+    ret = InitServiceMgr();
     if (ret != SUCCESS) {
-        Logger(ERROR, MD_NM_PCYS, "InitPluginMgr failed. ret:%d", ret);
+        Logger(ERROR, MD_NM_PCYS, "InitServiceMgr failed. ret:%d", ret);
         return ret;
     }
     ret = InitDataColl();
@@ -90,7 +90,7 @@ int InitPolicyService(void)
     return SUCCESS;
 }
 
-int StartPolicyService(void)
+int StartEagleSystem(void)
 {
     int ret = RegisterToPapis();
     if (ret != SUCCESS) {
@@ -115,7 +115,7 @@ int StartPolicyService(void)
     return SUCCESS;
 }
 
-void StopPolicyService(void)
+void StopEagleSystem(void)
 {
     EndPolicy();
     if (RestoreOriginalSysItems() != SUCCESS) {
