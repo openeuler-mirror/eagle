@@ -19,7 +19,7 @@
 #include "config.h"
 #include "log.h"
 #include "common.h"
-#include "policyservice.h"
+#include "eaglecore.h"
 
 #define MAIN_THREAD_LOOP_INTERVAL 5
 static int g_keepMainRunning;
@@ -42,7 +42,7 @@ static int BaseInit(void)
         return ret;
     }
 
-    ret = InitPolicyService();
+    ret = InitEagleSystem();
     if (ret != SUCCESS) {
         return ret;
     }
@@ -84,9 +84,9 @@ int main(int argc, const char *args[])
         Logger(ERROR, MD_NM_MAN, "BaseInit failed. ret:%d", ret);
         exit(-1);
     }
-    ret = StartPolicyService();
+    ret = StartEagleSystem();
     if (ret != SUCCESS) {
-        Logger(ERROR, MD_NM_MAN, "StartPolicyService failed. ret:%d", ret);
+        Logger(ERROR, MD_NM_MAN, "StartEagleSystem failed. ret:%d", ret);
         exit(-1);
     }
 
@@ -103,7 +103,7 @@ int main(int argc, const char *args[])
             CheckAndUpdatePolicy();
         }
     }
-    StopPolicyService();
+    StopEagleSystem();
     ClearEnv();
     return 0;
 }
