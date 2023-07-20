@@ -50,8 +50,6 @@ static const char g_freqGov[][MAX_KEY_LEN] = {
 static const char g_idleGov[][MAX_KEY_LEN] = {{"menu"}, {"teo"}};
 static const char g_alpm[][MAX_KEY_LEN] = {{"min_power"}, {"medium_power"}, {"max_performance"}};
 
-static struct Policy g_curPolicy;
-static struct Policy g_lastPolicy;
 
 static int CheckFile(const char *file)
 {
@@ -269,31 +267,23 @@ static int ParseFile(const char *filePath, Policy *pcy)
 }
 
 /* *********************************************public****************************** */
-int InitPolicy(const char policyFilePath[])
+int InitPolicy(const char policyFilePath[], Policy *pcy)
 {
+    if(!pcy) {
+        return ERR_NULL_POINTER;
+    }
     int ret = CheckFile(policyFilePath);
     if (ret != SUCCESS) {
         Logger(ERROR, MD_NM_PCY, "CheckFile failed. ret:%d", ret);
         return ret;
     }
-    bzero(&g_curPolicy, sizeof(Policy));
-    bzero(&g_lastPolicy, sizeof(Policy));
-    ret = ParseFile(policyFilePath, &g_curPolicy);
+    ret = ParseFile(policyFilePath, pcy);
     if (ret != SUCCESS) {
         Logger(ERROR, MD_NM_PCY, "ParseFile failed. ret:%d", ret);
-        bzero(&g_curPolicy, sizeof(Policy));
+        bzero(pcy, sizeof(Policy));
         return ret;
     }
-    memcpy(&g_lastPolicy, &g_curPolicy, sizeof(Policy));
     return SUCCESS;
 }
 
-Policy *GetCurPolicy(void)
-{
-    return (Policy *)&g_curPolicy;
-}
 
-Policy *GetLastPolicy(void)
-{
-    return (Policy *)&g_lastPolicy;
-}

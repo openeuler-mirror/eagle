@@ -51,7 +51,7 @@ typedef struct Policy {
     UsbPolicy usbPolicy;
 } Policy;
 
-int InitPolicy(const char policyFilePath[]);
+int InitPolicy(const char policyFilePath[], Policy *pcy);
 Policy *GetCurPolicy(void);
 Policy *GetLastPolicy(void);
 #endif
