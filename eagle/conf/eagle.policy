@@ -4,35 +4,27 @@
 name=default
 desc=optimaze for high energy efficiency
 
-[cpu]
-#CpuFreq governor, options: seep, conservative, ondemand, userspace, powersave, performance
-freq_governor=seep
+[sched_service]
+sched_lib = libsched_service.so
+enable_watt_sched = 1
+watt_th = 70
 
-#CpuIdle governor, options: menu, teo
-idle_governor=menu
+[freq_service]
+freq_lib = libfreq_service.so
+cpufreq_gov = seep
+perf_loss_rate = 5
+sampling_rate = 1000
 
-# PM QOS. cpu&dma latency.
-# -1: dynamic tuning;
-# The value 0 or positive integer indicates the specific latency(unit: millisecond)
-cpu_dma_latency=-1
+[idle_service]
+idle_lib = libidle_service.so
+cpuidle_gov = menu
 
-# CPU tick mode, options: nohz
-#tick_mode=nohz
+[pcap_service]
+pcap_lib = libpcap_service.so
+enable_pcap = 1
+cap_target = 500
 
-[disk]
-# Enable or disable dynamic tuning. options: enalbe, disable
-disk_dynamic_tuning=enable
+[mpc_service]
+mpc_lib = libmpc_service.so
+enable_mpc = 1
 
-# SCSI link power management policy. options:
-# min_power: Sets the link to its lowest power state(SLUMBER) when there is no I/O on the disk.
-# medium_power: Sets the link to the second lowest state(PARTIAL) when there is no I/O on the disk.
-# max_performance: ALPM is disabled.
-alpm=medium_power
-
-[net]
-# Enable or disable dynamic tuning. options: enalbe, disable
-net_dynamic_tuning=enable
-
-[usb]
-# Enable or disable usb AUTOSUSPEND. options: enalbe, disable
-autosuspend=enable

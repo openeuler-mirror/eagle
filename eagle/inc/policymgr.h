@@ -15,6 +15,10 @@
 #ifndef EAGLE_POLICY_MGR_H__
 #define EAGLE_POLICY_MGR_H__
 
+#include "policy.h"
+
 int InitPolicyMgr(void);
 int UpdatePolicy(void);
+Policy *GetCurPolicy(void);
+Policy *GetLastPolicy(void);
 #endif
