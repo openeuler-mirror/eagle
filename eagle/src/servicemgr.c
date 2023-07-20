@@ -14,8 +14,20 @@
  * **************************************************************************** */
 
 #include "servicemgr.h"
+#include "common.h"
 
 int InitServiceMgr(void)
+{
+    // todo
+}
+
+int StartServices(void)
+{
+    // todo
+    return SUCCESS;
+}
+
+void StopServices(void)
 {
     // todo
 }

@@ -1,5 +1,5 @@
 /* *****************************************************************************
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023-2023. All rights reserved.
  * eagle licensed under the Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
@@ -9,13 +9,12 @@
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
  * Author: queyanwen
- * Create: 2022-06-23
- * Description: provide configuration service
+ * Create: 2023-07-20
+ * Description: provide policy management service
  * **************************************************************************** */
-#ifndef EAGLE_SERVICE_MGR_H__
-#define EAGLE_SERVICE_MGR_H__
+#ifndef EAGLE_POLICY_MGR_H__
+#define EAGLE_POLICY_MGR_H__
 
-int InitServiceMgr(void);
-int StartServices(void);
-void StopServices(void);
+int InitPolicyMgr(void);
+int UpdatePolicy(void);
 #endif

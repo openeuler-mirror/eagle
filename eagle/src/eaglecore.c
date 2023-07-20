@@ -19,8 +19,9 @@
 #include "config.h"
 #include "devicectrl.h"
 #include "servicemgr.h"
+#include "policymgr.h"
 #include "datacollect.h"
-#include "policy.h"
+
 
 static int g_hasRegistedToPapis = FALSE;
 
@@ -37,54 +38,40 @@ static void UnRegisterFromPapis(void)
     g_hasRegistedToPapis = FALSE;
 }
 
-static int LoadPolicyFile(void)
-{
-    int ret = InitPolicy(GetPolicyCfg()->policyFile);
-    if (ret != SUCCESS) {
-        Logger(ERROR, MD_NM_PCYS, "InitPolicy failed. ret: %d", ret);
-    }
-    return SUCCESS;
-}
-
-static int BackupOriginalSysItems(void)
+static int BackupOriginalSettings(void)
 {
     // todo
     return SUCCESS;
 }
 
-static int RestoreOriginalSysItems(void)
+static int RestoreOriginalSettings(void)
 {
     // todo
     return SUCCESS;
 }
 
-static int ExecutePolicy(void)
-{
-    // todo
-    return SUCCESS;
-}
-
-static void EndPolicy(void)
-{
-    // todo
-}
 
 /* ****************public**************************************** */
 int InitEagleSystem(void)
 {
-    int ret = InitDevCtrl();
+    int ret = InitPolicyMgr();
     if (ret != SUCCESS) {
-        Logger(ERROR, MD_NM_PCYS, "InitDevCtrl failed. ret:%d", ret);
+        Logger(ERROR, MD_NM_ECORE, "InitPolicyMgr failed. ret:%d", ret);
         return ret;
     }
     ret = InitServiceMgr();
     if (ret != SUCCESS) {
-        Logger(ERROR, MD_NM_PCYS, "InitServiceMgr failed. ret:%d", ret);
+        Logger(ERROR, MD_NM_ECORE, "InitServiceMgr failed. ret:%d", ret);
         return ret;
     }
     ret = InitDataColl();
     if (ret != SUCCESS) {
-        Logger(ERROR, MD_NM_PCYS, "InitDataColl failed. ret:%d", ret);
+        Logger(ERROR, MD_NM_ECORE, "InitDataColl failed. ret:%d", ret);
+        return ret;
+    }
+    ret = InitDevCtrl();
+    if (ret != SUCCESS) {
+        Logger(ERROR, MD_NM_ECORE, "InitDevCtrl failed. ret:%d", ret);
         return ret;
     }
     return SUCCESS;
@@ -94,22 +81,18 @@ int StartEagleSystem(void)
 {
     int ret = RegisterToPapis();
     if (ret != SUCCESS) {
-        Logger(ERROR, MD_NM_PCYS, "RegisterToPapis failed. ret:%d", ret);
+        Logger(ERROR, MD_NM_ECORE, "RegisterToPapis failed. ret:%d", ret);
         return ret;
     }
-    ret = LoadPolicyFile();
+
+    ret = BackupOriginalSettings();
     if (ret != SUCCESS) {
-        Logger(ERROR, MD_NM_PCYS, "LoadPolicyFile failed. ret:%d", ret);
+        Logger(ERROR, MD_NM_ECORE, "BackupOriginalItems failed. ret:%d", ret);
         return ret;
     }
-    ret = BackupOriginalSysItems();
+    ret = StartServices();
     if (ret != SUCCESS) {
-        Logger(ERROR, MD_NM_PCYS, "BackupOriginalItems failed. ret:%d", ret);
-        return ret;
-    }
-    ret = ExecutePolicy();
-    if (ret != SUCCESS) {
-        Logger(ERROR, MD_NM_PCYS, "ExecutePolicy failed. ret:%d", ret);
+        Logger(ERROR, MD_NM_ECORE, "StartServices failed. ret:%d", ret);
         return ret;
     }
     return SUCCESS;
@@ -117,9 +100,9 @@ int StartEagleSystem(void)
 
 void StopEagleSystem(void)
 {
-    EndPolicy();
-    if (RestoreOriginalSysItems() != SUCCESS) {
-        Logger(ERROR, MD_NM_PCYS, "RestoreOriginalSysItems failed");
+    StopServices();
+    if (RestoreOriginalSettings() != SUCCESS) {
+        Logger(ERROR, MD_NM_ECORE, "RestoreOriginalSettings failed");
     }
 
     UnRegisterFromPapis();
@@ -127,5 +110,6 @@ void StopEagleSystem(void)
 
 void CheckAndUpdatePolicy(void)
 {
+    UpdatePolicy();
     // todo
 }

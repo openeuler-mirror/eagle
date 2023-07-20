@@ -48,11 +48,12 @@
 #define MD_NM_MAN "MAIN"
 #define MD_NM_LOG "LOG"
 #define MD_NM_CFG "CONFIG"
-#define MD_NM_PCYS "PCY_SERC"
+#define MD_NM_ECORE "EAGLE_CORE"
 #define MD_NM_DCTRL "DEV_CTRL"
-#define MD_NM_PMGR "PLUGIN_MGR"
+#define MD_NM_SVRMGR "SERVICE_MGR"
+#define MD_NM_PCYMGR "POLICY_MGR"
 #define MD_NM_DCOLL "DATA_COLL"
-#define MD_NM_PLG "PLUGIN"
+#define MD_NM_SVR "SERVICE"
 #define MD_NM_PCY "POLICY"
 
 // Define configuration section name
