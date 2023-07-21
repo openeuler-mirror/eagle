@@ -18,40 +18,49 @@
 #include "common.h"
 
 enum PcyState {
-    PCY_ENABLE = 1,
-    PCY_DISABLE = 2
+    PCY_DISABLE = 0,
+    PCY_ENABLE = 1
 };
 
-typedef struct CpuPolicy {
+typedef struct SchedServicePcy {
+    char schedLib[MAX_KEY_LEN];
+    int enableWattSched;
+    int WattTh;     // [0,100]
+} SchedServicePcy;
+
+typedef struct FreqServicePcy {
+    char freqLib[MAX_KEY_LEN];
     char freqGov[MAX_KEY_LEN];
+    int perfLossRate;   // [0.100]
+    int samplingRate;   // ms
+} FreqServicePcy;
+
+typedef struct IdleServicePcy {
+    char idleLib[MAX_KEY_LEN];
     char idleGov[MAX_KEY_LEN];
-    char tickMode[MAX_KEY_LEN];
-    int cpuDmaLatency;
-} CpuPolicy;
+} IdleServicePcy;
 
-typedef struct DiskPolicy {
-    int dynamicTuning;
-    char alpm[MAX_KEY_LEN];
-} DiskPolicy;
+typedef struct PcapServicePcy {
+    char pcapLib[MAX_KEY_LEN];
+    int enablePcap;
+    int capTarget;
+} PcapServicePcy;
 
-typedef struct NetPolicy {
-    int dynamicTuning;
-} NetPolicy;
-
-typedef struct UsbPolicy {
-    int autoSuspend;
-} UsbPolicy;
+typedef struct MpcServicePcy {
+    char mpcLib[MAX_KEY_LEN];
+    int enableMpc;
+} MpcServicePcy;
 
 typedef struct Policy {
     char pcyName[MAX_KEY_LEN];
-    char pcyDesc[MAX_VALUE];
-    CpuPolicy cpuPolicy;
-    DiskPolicy diskPolicy;
-    NetPolicy netPolicy;
-    UsbPolicy usbPolicy;
+    char pcyDesc[MAX_LINE_LENGTH];
+    SchedServicePcy schedPcy;
+    FreqServicePcy freqPcy;
+    IdleServicePcy idlePcy;
+    PcapServicePcy pcapPcy;
+    MpcServicePcy mpcPcy;
 } Policy;
 
 int InitPolicy(const char policyFilePath[], Policy *pcy);
-Policy *GetCurPolicy(void);
-Policy *GetLastPolicy(void);
+
 #endif

@@ -23,26 +23,42 @@
 
 // Policy section name
 #define PCY_SEC_PCY "policy"
-#define PCY_SEC_CPU "cpu"
-#define PCY_SEC_DISK "disk"
-#define PCY_SEC_NET "net"
-#define PCY_SEC_USB "usb"
+#define PCY_SEC_SCHED "sched_service"
+#define PCY_SEC_FREQ "freq_service"
+#define PCY_SEC_IDLE "idle_service"
+#define PCY_SEC_PCAP "pcap_service"
+#define PCY_SEC_MPC  "mpc_service"
 // Policy item name
 #define PCY_ITEM_PCY_NAME "name"
 #define PCY_ITEM_PCY_DESC "desc"
-#define PCY_ITEM_CPU_FREQGOV "freq_governor"
-#define PCY_ITEM_CPU_IDLEGOV "idle_governor"
-#define PCY_ITEM_CPU_LATCY "cpu_dma_latency"
-// #define PCY_ITEM_CPU_TICKMODE "tick_mode"
-#define PCY_ITEM_DISK_DYNTUN "disk_dynamic_tuning"
-#define PCY_ITEM_DISK_ALPM "alpm"
-#define PCY_ITEM_NET_DYNTUN "net_dynamic_tuning"
-#define PCY_ITEM_USB_AUTOSPD "autosuspend"
+#define PCY_ITEM_SCHED_LIB "sched_lib"
+#define PCY_ITEM_SCHED_EWS "enable_watt_sched"
+#define PCY_ITEM_SCHED_WTH "watt_th"
 
-#define MAX_CPU_DMA_LATENCY 2000000000
-#define MIN_CPU_DMA_LATENCY (-1)
-#define PCY_STATE_ENABLE "eable"
-#define PCY_STATE_DISABLE "disable"
+#define PCY_ITEM_FREQ_LIB "freq_lib"
+#define PCY_ITEM_FREQ_GOV "cpufreq_gov"
+#define PCY_ITEM_FREQ_PLR "perf_loss_rate"
+#define PCY_ITEM_FREQ_SR "sampling_rate"
+
+#define PCY_ITEM_IDLE_LIB "idle_lib"
+#define PCY_ITEM_IDLE_GOV "cpuidle_gov"
+
+#define PCY_ITEM_PCAP_LIB "pcap_lib"
+#define PCY_ITEM_PCAP_ENPCAP "enable_pcap"
+#define PCY_ITEM_PCAP_TGT "cap_target"
+
+#define PCY_ITEM_MPC_LIB "mpc_lib"
+#define PCY_ITEM_MPC_ENMPC "enable_mpc"
+
+#define PCY_STATE_ENABLE "1"
+#define PCY_STATE_DISABLE "0"
+
+#define MAX_RATE 100
+#define MIN_RATE 0
+#define MAX_FREQ_SAM_RATE 10000 // ms
+#define MIN_FREQ_SAM_RATE 10    // ms
+#define MAX_PCAP_TARGET 10000 // watt
+#define MIN_PCAP_TARGET 100    // watt
 
 static const char g_freqGov[][MAX_KEY_LEN] = {
     {"seep"}, {"conservative"}, {"ondemand"}, {"userspace"}, {"powersave"}, {"performance"}
@@ -109,76 +125,115 @@ static int FullfillPcyItem(Policy *pcy, const char *name, const char *value)
     return ERR_FILE_CONTENT_ERROR;
 }
 
-static int FullfillCpuItem(Policy *pcy, const char *name, const char *value)
+static int FullfillSchedItem(Policy *pcy, const char *name, const char *value)
 {
-    if (strcmp(name, PCY_ITEM_CPU_FREQGOV) == 0) {
+    if (strcmp(name, PCY_ITEM_SCHED_LIB) == 0) {
+        strncpy(pcy->schedPcy.schedLib, value, sizeof(pcy->schedPcy.schedLib) - 1);
+        return SUCCESS;
+    }
+    if (strcmp(name, PCY_ITEM_SCHED_EWS) == 0) {
+        if (strcmp(value, PCY_STATE_ENABLE) == 0) {
+            pcy->schedPcy.enableWattSched = PCY_ENABLE;
+        } else if (strcmp(value, PCY_STATE_DISABLE) == 0) {
+            pcy->schedPcy.enableWattSched = PCY_DISABLE;
+        } else {
+            return ERR_FILE_CONTENT_ERROR;
+        }
+        return SUCCESS;
+    }
+    if (strcmp(name, PCY_ITEM_SCHED_WTH) == 0) {
+        if (!NumRangeChk(value, MIN_RATE, MAX_RATE)) {
+            return ERR_FILE_CONTENT_ERROR;
+        }
+        sscanf(value, "%d", &pcy->schedPcy.WattTh);
+        return SUCCESS;
+    }
+    return ERR_FILE_CONTENT_ERROR;
+}
+
+static int FullfillFreqItem(Policy *pcy, const char *name, const char *value)
+{
+    if (strcmp(name, PCY_ITEM_FREQ_LIB) == 0) {
+        strncpy(pcy->freqPcy.freqLib, value, sizeof(pcy->freqPcy.freqLib) - 1);
+        return SUCCESS;
+    }
+    if (strcmp(name, PCY_ITEM_FREQ_GOV) == 0) {
         if (!IsValueInList(value, g_freqGov, sizeof(g_freqGov) / sizeof(g_freqGov[0]))) {
             return ERR_FILE_CONTENT_ERROR;
         }
-        strncpy(pcy->cpuPolicy.freqGov, value, sizeof(pcy->cpuPolicy.freqGov) - 1);
+        strncpy(pcy->freqPcy.freqGov, value, sizeof(pcy->freqPcy.freqGov) - 1);
         return SUCCESS;
     }
-    if (strcmp(name, PCY_ITEM_CPU_IDLEGOV) == 0) {
+    if (strcmp(name, PCY_ITEM_FREQ_PLR) == 0) {
+        if (!NumRangeChk(value, MIN_RATE, MAX_RATE)) {
+            return ERR_FILE_CONTENT_ERROR;
+        }
+        sscanf(value, "%d", &pcy->freqPcy.perfLossRate);
+        return SUCCESS;
+    }
+    if (strcmp(name, PCY_ITEM_FREQ_SR) == 0) {
+        if (!NumRangeChk(value, MIN_FREQ_SAM_RATE, MAX_FREQ_SAM_RATE)) {
+            return ERR_FILE_CONTENT_ERROR;
+        }
+        sscanf(value, "%d", &pcy->freqPcy.samplingRate);
+        return SUCCESS;
+    }
+    return ERR_FILE_CONTENT_ERROR;
+}
+
+static int FullfillIdleItem(Policy *pcy, const char *name, const char *value)
+{
+    if (strcmp(name, PCY_ITEM_IDLE_LIB) == 0) {
+        strncpy(pcy->idlePcy.idleLib, value, sizeof(pcy->idlePcy.idleLib) - 1);
+        return SUCCESS;
+    }
+    if (strcmp(name, PCY_ITEM_IDLE_GOV) == 0) {
         if (!IsValueInList(value, g_idleGov, sizeof(g_idleGov) / sizeof(g_idleGov[0]))) {
             return ERR_FILE_CONTENT_ERROR;
         }
-        strncpy(pcy->cpuPolicy.idleGov, value, sizeof(pcy->cpuPolicy.idleGov) - 1);
-        return SUCCESS;
-    }
-    if (strcmp(name, PCY_ITEM_CPU_LATCY) == 0) {
-        if (!NumRangeChk(value, MIN_CPU_DMA_LATENCY, MAX_CPU_DMA_LATENCY)) {
-            return ERR_FILE_CONTENT_ERROR;
-        }
-        sscanf(value, "%d", &pcy->cpuPolicy.cpuDmaLatency);
+        strncpy(pcy->idlePcy.idleGov, value, sizeof(pcy->idlePcy.idleGov) - 1);
         return SUCCESS;
     }
     return ERR_FILE_CONTENT_ERROR;
 }
 
-static int FullfillDiskItem(Policy *pcy, const char *name, const char *value)
+static int FullfillPcapItem(Policy *pcy, const char *name, const char *value)
 {
-    if (strcmp(name, PCY_ITEM_DISK_DYNTUN) == 0) {
+    if (strcmp(name, PCY_ITEM_PCAP_LIB) == 0) {
+        strncpy(pcy->pcapPcy.pcapLib, value, sizeof(pcy->pcapPcy.pcapLib) - 1);
+        return SUCCESS;
+    }
+    if (strcmp(name, PCY_ITEM_PCAP_ENPCAP) == 0) {
         if (strcmp(value, PCY_STATE_ENABLE) == 0) {
-            pcy->diskPolicy.dynamicTuning = PCY_ENABLE;
+            pcy->pcapPcy.enablePcap = PCY_ENABLE;
         } else if (strcmp(value, PCY_STATE_DISABLE) == 0) {
-            pcy->diskPolicy.dynamicTuning = PCY_DISABLE;
+            pcy->pcapPcy.enablePcap = PCY_DISABLE;
         } else {
             return ERR_FILE_CONTENT_ERROR;
         }
         return SUCCESS;
     }
-    if (strcmp(name, PCY_ITEM_DISK_ALPM) == 0) {
-        if (!IsValueInList(value, g_alpm, sizeof(g_alpm) / sizeof(g_alpm[0]))) {
+    if (strcmp(name, PCY_ITEM_PCAP_TGT) == 0) {
+        if (!NumRangeChk(value, MIN_PCAP_TARGET, MAX_PCAP_TARGET)) {
             return ERR_FILE_CONTENT_ERROR;
         }
-        strncpy(pcy->diskPolicy.alpm, value, sizeof(pcy->diskPolicy.alpm) - 1);
+        sscanf(value, "%d", &pcy->pcapPcy.capTarget);
         return SUCCESS;
     }
     return ERR_FILE_CONTENT_ERROR;
 }
 
-static int FullfillNetItem(Policy *pcy, const char *name, const char *value)
+static int FullfillMpcItem(Policy *pcy, const char *name, const char *value)
 {
-    if (strcmp(name, PCY_ITEM_NET_DYNTUN) == 0) {
-        if (strcmp(value, PCY_STATE_ENABLE) == 0) {
-            pcy->netPolicy.dynamicTuning = PCY_ENABLE;
-        } else if (strcmp(value, PCY_STATE_DISABLE) == 0) {
-            pcy->netPolicy.dynamicTuning = PCY_DISABLE;
-        } else {
-            return ERR_FILE_CONTENT_ERROR;
-        }
+    if (strcmp(name, PCY_ITEM_MPC_LIB) == 0) {
+        strncpy(pcy->mpcPcy.mpcLib, value, sizeof(pcy->mpcPcy.mpcLib) - 1);
         return SUCCESS;
     }
-    return ERR_FILE_CONTENT_ERROR;
-}
-
-static int FullfillUsbItem(Policy *pcy, const char *name, const char *value)
-{
-    if (strcmp(name, PCY_ITEM_USB_AUTOSPD) == 0) {
+    if (strcmp(name, PCY_ITEM_MPC_ENMPC) == 0) {
         if (strcmp(value, PCY_STATE_ENABLE) == 0) {
-            pcy->usbPolicy.autoSuspend = PCY_ENABLE;
+            pcy->mpcPcy.enableMpc = PCY_ENABLE;
         } else if (strcmp(value, PCY_STATE_DISABLE) == 0) {
-            pcy->usbPolicy.autoSuspend = PCY_DISABLE;
+            pcy->mpcPcy.enableMpc = PCY_DISABLE;
         } else {
             return ERR_FILE_CONTENT_ERROR;
         }
@@ -192,17 +247,20 @@ static int FullfillPolicyItem(Policy *pcy, const char *section, const char *name
     if (strcmp(section, PCY_SEC_PCY) == 0) {
         return FullfillPcyItem(pcy, name, value);
     }
-    if (strcmp(section, PCY_SEC_CPU) == 0) {
-        return FullfillCpuItem(pcy, name, value);
+    if (strcmp(section, PCY_SEC_SCHED) == 0) {
+        return FullfillSchedItem(pcy, name, value);
     }
-    if (strcmp(section, PCY_SEC_DISK) == 0) {
-        return FullfillDiskItem(pcy, name, value);
+    if (strcmp(section, PCY_SEC_FREQ) == 0) {
+        return FullfillFreqItem(pcy, name, value);
     }
-    if (strcmp(section, PCY_SEC_NET) == 0) {
-        return FullfillNetItem(pcy, name, value);
+    if (strcmp(section, PCY_SEC_IDLE) == 0) {
+        return FullfillIdleItem(pcy, name, value);
     }
-    if (strcmp(section, PCY_SEC_USB) == 0) {
-        return FullfillUsbItem(pcy, name, value);
+    if (strcmp(section, PCY_SEC_PCAP) == 0) {
+        return FullfillPcapItem(pcy, name, value);
+    }
+    if (strcmp(section, PCY_SEC_MPC) == 0) {
+        return FullfillMpcItem(pcy, name, value);
     }
     return ERR_FILE_CONTENT_ERROR;
 }
@@ -269,7 +327,7 @@ static int ParseFile(const char *filePath, Policy *pcy)
 /* *********************************************public****************************** */
 int InitPolicy(const char policyFilePath[], Policy *pcy)
 {
-    if(!pcy) {
+    if (!pcy) {
         return ERR_NULL_POINTER;
     }
     int ret = CheckFile(policyFilePath);
@@ -285,5 +343,3 @@ int InitPolicy(const char policyFilePath[], Policy *pcy)
     }
     return SUCCESS;
 }
-
-

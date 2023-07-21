@@ -17,7 +17,6 @@
 
 #include <string.h>
 #include "log.h"
-#include "policy.h"
 #include "config.h"
 
 static struct Policy g_curPolicy;
