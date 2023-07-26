@@ -1,14 +1,15 @@
 cmake_minimum_required (VERSION 3.16)
-project (sched_service C)
+project (pwrapi_adaptor C)
 set ( CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Add head directory
 include_directories ("${PROJECT_SOURCE_DIR}")
+include_directories ("${PROJECT_SOURCE_DIR}/pwrapi")
 include_directories ("${PROJECT_SOURCE_DIR}/../../inc")
-include_directories ("${PROJECT_SOURCE_DIR}/../pwrapi_adaptor")
+
 
 # Load source file
-set(SCHED_SRC ${PROJECT_SOURCE_DIR}/sched_service.c)
+set(SCHED_SRC ${PROJECT_SOURCE_DIR}/pwrapiadpt.c)
 
 # Set compile policy
 set (PG_NAME ${PROJECT_NAME})

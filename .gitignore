@@ -3,3 +3,7 @@ install
 build
 release
 debug
+./eagle/src/pwrapi_adaptor/pwrapi/libpwrapi.so
+./eagle/src/pwrapi_adaptor/pwrapi/powerapi.h
+./eagle/src/pwrapi_adaptor/pwrapi/pwrdata.h
+./eagle/src/pwrapi_adaptor/pwrapi/pwrerr.h

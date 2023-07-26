@@ -55,6 +55,7 @@
 #define MD_NM_DCOLL "DATA_COLL"
 #define MD_NM_SVR "SERVICE"
 #define MD_NM_PCY "POLICY"
+#define MD_NM_PWRAPI "PWRAPI"
 
 // Define configuration section name
 #define CFG_NM_LOG "log"
@@ -258,6 +259,7 @@ enum RtnCode {
     ERR_NOT_REGISTED = 100,
     ERR_OVER_MAX_CONNECTION,
     ERR_DISCONNECTED = 300,
+    ERR_INVOKE_PWRAPI_FAILED,
 
     ERR_FILE_NOT_EXIST = 400,
     ERR_FILE_CONTENT_ERROR,

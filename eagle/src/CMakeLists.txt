@@ -3,6 +3,13 @@ project (eagle C)
 set ( CMAKE_INCLUDE_CURRENT_DIR ON)
 # Add head file directory
 include_directories ("${PROJECT_SOURCE_DIR}/../inc")
+include_directories ("${PROJECT_SOURCE_DIR}/pwrapi_adaptor")
+include_directories ("${PROJECT_SOURCE_DIR}/pwrapi_adaptor/pwrapi")
+# Add library directory
+link_directories (
+    "${PROJECT_SOURCE_DIR}/pwrapi_adaptor/pwrapi"
+    "${CMAKE_CURRENT_BINARY_DIR}/pwrapi_adaptor"
+) 
 
 # Load source file
 aux_source_directory(${PROJECT_SOURCE_DIR} EAGLE_SRC_DIR)
@@ -10,6 +17,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR} EAGLE_SRC_DIR)
 # Set compiling policy
 set (PG_NAME ${PROJECT_NAME})
 add_executable (${PG_NAME} ${EAGLE_SRC_DIR})
+target_link_libraries(${PG_NAME} -lpwrapi_adaptor -lpwrapi -lpthread)
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Set installaltion path
