@@ -21,13 +21,29 @@
 #include "servicemgr.h"
 #include "policymgr.h"
 #include "datacollect.h"
+#include "pwrapiadpt.h"
 
 
 static int g_hasRegistedToPapis = FALSE;
 
+static void PwrapiLogCallback(int level, const char *fmt, va_list vl)
+{
+    char message[MAX_LINE_NUM] = {0};
+
+    if (vsnprintf(message, sizeof(message) - 1, fmt, vl) < 0) {
+        return;
+    }
+    Logger(level, MD_NM_PWRAPI, message);
+}
+
 static int RegisterToPapis(void)
 {
     // todo. register via powerapi.so
+    PwrapiSetLogCallback(PwrapiLogCallback);
+    int ret = PwrapiRegister();
+    if (ret != SUCCESS) {
+        return ret;
+    }
     g_hasRegistedToPapis = TRUE;
     return SUCCESS;
 }
@@ -35,6 +51,7 @@ static int RegisterToPapis(void)
 static void UnRegisterFromPapis(void)
 {
     // todo.
+    PWR_UnRegister();
     g_hasRegistedToPapis = FALSE;
 }
 

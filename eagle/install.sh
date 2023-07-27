@@ -2,4 +2,4 @@
 
 cd build
 sudo make install 
-sudo systemctl start eagle.service
+sudo systemctl start eagle.service --now
