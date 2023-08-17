@@ -23,13 +23,13 @@ extern "C" {
 
 #define SRV_API
 
-
-/**
-Init the service
-**/
-SRV_API int SRV_SetLogCallback(void(LogCallback)(int level, const char *fmt, va_list vl));
+SRV_API int SRV_SetLogCallback(void(LogCallback)(int level, const char *, const char *, va_list),
+    const char *usrInfo);
 SRV_API int SRV_Init(void);
-
+SRV_API int SRV_Start(void* pcy);
+SRV_API int SRV_Update(void* pcy);
+SRV_API int SRV_Stop(void);
+SRV_API int SRV_Uninit(void);
 
 #ifdef __cplusplus
 }

@@ -14,14 +14,12 @@
  * **************************************************************************** */
 
 #include "pwrapiadpt.h"
-#include "log.h"
-
+#include "public.h"
 
 int PwrapiSetLogCallback(void(LogCallback)(int level, const char *fmt, va_list vl))
 {
     int ret = PWR_SetLogCallback(LogCallback);
     if (ret != PWR_SUCCESS) {
-        Logger(ERROR, MD_NM_PWRAPI, "Invoke PWR_SetLogCallback failed. ret:%d", ret);
         return ERR_INVOKE_PWRAPI_FAILED;
     }
     return SUCCESS;
@@ -30,7 +28,6 @@ int PwrapiSetLogCallback(void(LogCallback)(int level, const char *fmt, va_list v
 int PwrapiRegister(void)
 {
     int ret = PWR_Register();
-    Logger(ERROR, MD_NM_PWRAPI, "Invoke PWR_Register failed. ret:%d", ret);
     if (ret != PWR_SUCCESS) {
         return ERR_INVOKE_PWRAPI_FAILED;
     }

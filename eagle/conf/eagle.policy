@@ -5,26 +5,31 @@ name=default
 desc=optimaze for high energy efficiency
 
 [sched_service]
+enable=1
 sched_lib = libsched_service.so
 enable_watt_sched = 1
-watt_th = 70
+watt_th = 85
 
 [freq_service]
+enable=1
 freq_lib = libfreq_service.so
 cpufreq_gov = seep
 perf_loss_rate = 5
 sampling_rate = 1000
 
 [idle_service]
+enable=1
 idle_lib = libidle_service.so
 cpuidle_gov = menu
 
 [pcap_service]
+enable=1
 pcap_lib = libpcap_service.so
 enable_pcap = 1
 cap_target = 500
 
 [mpc_service]
+enable=1
 mpc_lib = libmpc_service.so
 enable_mpc = 1
 

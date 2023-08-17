@@ -5,7 +5,7 @@ set ( CMAKE_INCLUDE_CURRENT_DIR ON)
 # Add head directory
 include_directories ("${PROJECT_SOURCE_DIR}")
 include_directories ("${PROJECT_SOURCE_DIR}/pwrapi")
-include_directories ("${PROJECT_SOURCE_DIR}/../../inc")
+include_directories ("${PROJECT_SOURCE_DIR}/../../inc/shared")
 
 
 # Load source file

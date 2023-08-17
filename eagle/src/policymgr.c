@@ -14,14 +14,12 @@
  * **************************************************************************** */
 
 #include "policymgr.h"
-
 #include <string.h>
 #include "log.h"
 #include "config.h"
 
 static struct Policy g_curPolicy;
 static struct Policy g_lastPolicy;
-
 
 int InitPolicyMgr(void)
 {
