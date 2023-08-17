@@ -13,23 +13,23 @@ watt_th = 85
 [freq_service]
 enable=1
 freq_lib = libfreq_service.so
-cpufreq_gov = seep
+cpufreq_gov = conservative
 perf_loss_rate = 5
-sampling_rate = 1000
+sampling_rate = 0
 
 [idle_service]
-enable=1
+enable=0
 idle_lib = libidle_service.so
 cpuidle_gov = menu
 
 [pcap_service]
-enable=1
+enable=0
 pcap_lib = libpcap_service.so
 enable_pcap = 1
 cap_target = 500
 
 [mpc_service]
-enable=1
+enable=0
 mpc_lib = libmpc_service.so
 enable_mpc = 1
 

@@ -15,11 +15,11 @@
 
 #include "pwrapiadpt.h"
 #include "public.h"
+#include "powerapi.h"
 
 int PwrapiSetLogCallback(void(LogCallback)(int level, const char *fmt, va_list vl))
 {
-    int ret = PWR_SetLogCallback(LogCallback);
-    if (ret != PWR_SUCCESS) {
+    if (PWR_SetLogCallback(LogCallback) != PWR_SUCCESS) {
         return ERR_INVOKE_PWRAPI_FAILED;
     }
     return SUCCESS;
@@ -27,8 +27,7 @@ int PwrapiSetLogCallback(void(LogCallback)(int level, const char *fmt, va_list v
 
 int PwrapiRegister(void)
 {
-    int ret = PWR_Register();
-    if (ret != PWR_SUCCESS) {
+    if (PWR_Register() != PWR_SUCCESS) {
         return ERR_INVOKE_PWRAPI_FAILED;
     }
     return SUCCESS;
@@ -37,5 +36,13 @@ int PwrapiRegister(void)
 int PwrapiUnRegister(void)
 {
     (void)PWR_UnRegister();
+    return SUCCESS;
+}
+
+int PwrapiCpuSetFreqGovernor(const char gov[])
+{
+    if (PWR_CPU_SetFreqGovernor(gov) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
     return SUCCESS;
 }

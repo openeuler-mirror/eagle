@@ -9,15 +9,16 @@
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
  * Author: queyanwen
- * Create: 2023-06-28
- * Description: provide intelligent scheduling service
+ * Create: 2023-08-17
+ * Description: provide frequency scaling service
  * **************************************************************************** */
 
-#include "sched_service.h"
+#include "freq_service.h"
 #include <stdio.h>
 #include <string.h>
 #include "public.h"
 #include "policydt.h"
+#include "pwrapiadpt.h"
 
 static void DefaultLogCallback(int level, const char *usInfo, const char *fmt, va_list vl)
 {
@@ -38,13 +39,11 @@ static inline void SrvLog(int level, const char *fmt, ...)
     }
 }
 
-static int ParsePolicy(const SchedServicePcy *schedPcy)
+static int ParsePolicy(const FreqServicePcy *schedPcy)
 {
-    int ret = SUCCESS;
-    if (schedPcy->enableWattSched) {
-        // todo: enable watt scheduling.
+    if (strcmp(schedPcy->freqGov, "") != 0 ) {
+        return PwrapiCpuSetFreqGovernor(schedPcy->freqGov);
     }
-    return ret;
 }
 
 // public ===============================================================================
@@ -72,7 +71,7 @@ int SRV_Start(void* pcy)
         SrvLog(ERROR, "SRV_Start, pcy is null");
         return ERR_NULL_POINTER;
     }
-    return ParsePolicy((SchedServicePcy*)pcy);
+    return ParsePolicy((FreqServicePcy*)pcy);
 }
 
 int SRV_Update(void* pcy)
@@ -81,7 +80,7 @@ int SRV_Update(void* pcy)
         SrvLog(ERROR, "SRV_Update, pcy is null");
         return ERR_NULL_POINTER;
     }
-    return ParsePolicy((SchedServicePcy*)pcy);
+    return ParsePolicy((FreqServicePcy*)pcy);
 }
 
 int SRV_Stop(void)

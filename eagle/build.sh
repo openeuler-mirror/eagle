@@ -20,6 +20,7 @@ mkdir ./release/eagle/lib
 cp ./build/src/eagle ./release/eagle/
 cp -r ./conf  ./release/eagle/
 cp ./build/src/sched_service/libsched_service.so ./release/eagle/lib
+cp ./build/src/freq_service/libfreq_service.so ./release/eagle/lib
 cp ./build/src/pwrapi_adaptor/libpwrapi_adaptor.so ./release/eagle/lib
 
 exit 0
