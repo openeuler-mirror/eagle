@@ -14,21 +14,34 @@
  * **************************************************************************** */
 
 #include "sched_service.h"
-
 #include <stdio.h>
-#include "common.h"
+#include "public.h"
 
-static void DefaultLogCallback(int level, const char *fmt, va_list vl)
+static void DefaultLogCallback(int level, const char *usInfo, const char *fmt, va_list vl)
 {
     printf(fmt);
 }
 
-void (*g_log_callback)(int level, const char *fmt, va_list vl) = DefaultLogCallback;
+static void (*g_log_callback)(int level, const char *usInfo, const char *fmt, va_list vl)
+    = DefaultLogCallback;
+static const char *g_id = NULL;
 
-int SRV_SetLogCallback(void(LogCallback)(int, const char *, va_list))
+static inline void SrvLog(int level, const char *fmt, ...)
+{
+    if (g_log_callback) {
+        va_list vl;
+        va_start(vl, fmt);
+        g_log_callback(level, g_id, fmt, vl);
+        va_end(vl);
+    }
+}
+
+int SRV_SetLogCallback(void(LogCallback)(int, const char *, const char *, va_list),
+    const char *usrInfo)
 {
     if (LogCallback) {
         g_log_callback = LogCallback;
+        g_id = usrInfo;
         return SUCCESS;
     }
     return ERR_NULL_POINTER;
@@ -37,4 +50,29 @@ int SRV_SetLogCallback(void(LogCallback)(int, const char *, va_list))
 int SRV_Init(void)
 {
     // todo
+    SrvLog(ERROR, "SRV_Init called. d:%d", 0);
+}
+
+int SRV_Start(void* pcy)
+{
+    // todo
+    SrvLog(ERROR, "SRV_Start called. d:%d", 1);
+}
+
+int SRV_Update(void* pcy)
+{
+    // todo
+    SrvLog(ERROR, "SRV_Update called. d:%d", 2);
+}
+
+int SRV_Stop(void)
+{
+    // todo
+    SrvLog(ERROR, "SRV_Stop called. d:%d", 3);
+}
+
+int SRV_Uninit(void)
+{
+    // todo
+    SrvLog(ERROR, "SRV_Uninit called. d:%d", 4);
 }

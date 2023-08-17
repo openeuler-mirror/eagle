@@ -35,12 +35,6 @@
 #define MAX_CMP_CNT 10
 
 // LogCfg
-enum LogLevel {
-    DEBUG = 0,
-    INFO,
-    WARNING,
-    ERROR
-};
 
 enum CnfItemType {
     E_CFG_IT_FLS,
