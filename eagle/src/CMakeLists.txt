@@ -34,8 +34,6 @@ install (TARGETS ${PG_NAME} DESTINATION sbin)
 # Install default config files
 install (FILES "${PROJECT_SOURCE_DIR}/../conf/eagle_config.ini" DESTINATION /etc/sysconfig)
 install (FILES "${PROJECT_SOURCE_DIR}/../eagle.service" DESTINATION /usr/lib/systemd/system)
-install (FILES "${CMAKE_CURRENT_BINARY_DIR}/pwrapi_adaptor/libpwrapi_adaptor.so" DESTINATION /usr/lib)
-install (FILES "${CMAKE_CURRENT_BINARY_DIR}/sched_service/libsched_service.so" DESTINATION /usr/lib)
 
 # release complile mode
 #set(CMAKE_BUILD_TYPE "Release")

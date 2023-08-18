@@ -9,23 +9,27 @@
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
  * Author: queyanwen
- * Create: 2023-06-28
- * Description: adaptor the powerapi
+ * Create: 2023-08-17
+ * Description: provide frequency scaling service
  * **************************************************************************** */
-#ifndef EAGLE_PWRAPI_ADAPTOR_H__
-#define EAGLE_PWRAPI_ADAPTOR_H__
+#ifndef EAGLE_FREQ_SERVICE_H__
+#define EAGLE_FREQ_SERVICE_H__
 
-#include <stdio.h>
+#include <stdarg.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int PwrapiSetLogCallback(void(LogCallback)(int level, const char *fmt, va_list vl));
-int PwrapiRegister(void);
-int PwrapiUnRegister(void);
+#define SRV_API
 
-int PwrapiCpuSetFreqGovernor(const char gov[]);
+SRV_API int SRV_SetLogCallback(void(LogCallback)(int level, const char *, const char *, va_list),
+    const char *usrInfo);
+SRV_API int SRV_Init(void);
+SRV_API int SRV_Start(void* pcy);
+SRV_API int SRV_Update(void* pcy);
+SRV_API int SRV_Stop(void);
+SRV_API int SRV_Uninit(void);
 
 #ifdef __cplusplus
 }

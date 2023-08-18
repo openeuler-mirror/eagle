@@ -51,7 +51,7 @@ static int RegisterToPapis(void)
 static void UnRegisterFromPapis(void)
 {
     // todo.
-    PWR_UnRegister();
+    PwrapiUnRegister();
     g_hasRegistedToPapis = FALSE;
 }
 
