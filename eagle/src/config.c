@@ -21,7 +21,7 @@
 #include "log.h"
 #include "utils.h"
 
-static char g_configPath[MAX_PATH_NAME] = "/etc/sysconfig/eagle_config.ini";
+static char g_configPath[MAX_PATH_NAME] = "/etc/eagle/eagle_config.ini";
 static char g_lastMd5[MD5_LEN] = {0};
 
 static struct LogCfg g_logCfg;

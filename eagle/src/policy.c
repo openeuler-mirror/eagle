@@ -57,7 +57,7 @@
 #define MAX_RATE 100
 #define MIN_RATE 0
 #define MAX_FREQ_SAM_RATE 10000 // ms
-#define MIN_FREQ_SAM_RATE 10    // ms
+#define MIN_FREQ_SAM_RATE 0    // ms
 #define MAX_PCAP_TARGET 10000 // watt
 #define MIN_PCAP_TARGET 100    // watt
 
@@ -156,7 +156,7 @@ static int FullfillSchedItem(Policy *pcy, const char *name, const char *value)
         if (!NumRangeChk(value, MIN_RATE, MAX_RATE)) {
             return ERR_FILE_CONTENT_ERROR;
         }
-        sscanf(value, "%d", &pcy->schedPcy.WattTh);
+        sscanf(value, "%d", &pcy->schedPcy.wattTh);
         return SUCCESS;
     }
     return ERR_FILE_CONTENT_ERROR;
@@ -345,7 +345,7 @@ static int ParsePolicyItems(FILE *file, Policy *pcy)
             break;
         }
         // Not a comment or section line, must be a name[ = :]value pair
-        end = FindChars(start, " = :");
+        end = FindChars(start, "=:");
         if (*end == '=' || *end == ':') {
             *end = '\0';
             name = Rtrim(start);

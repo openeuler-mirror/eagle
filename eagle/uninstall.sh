@@ -7,11 +7,11 @@ sudo systemctl disable eagle.service
 if [ -f "./build/install_manifest.txt" ];then
     cd build
     xargs rm < install_manifest.txt
-    else
+else
     rm /usr/local/lib/libpwrapi_adaptor.so
     rm /usr/local/lib/libsched_service.so
     rm /usr/local/lib/libfreq_service.so
     rm /usr/sbin/eagle
-    rm /etc/sysconfig/eagle_config.ini
+    rm /etc/eagle/eagle_config.ini
     rm /usr/lib/systemd/system/eagle.service
 fi
