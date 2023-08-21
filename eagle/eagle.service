@@ -2,7 +2,7 @@
 Description= Eagle Service. 
 
 [Service]
-ExecStart=/usr/sbin/eagle  /etc/sysconfig/eagle_config.ini
+ExecStart=/usr/sbin/eagle  /etc/eagle/eagle_config.ini
 Restart=always
 RestartSec=5
 User=root

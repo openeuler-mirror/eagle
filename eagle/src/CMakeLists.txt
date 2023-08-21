@@ -32,7 +32,8 @@ set ( CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Install path prefix" FORCE)
 install (TARGETS ${PG_NAME} DESTINATION sbin)
 
 # Install default config files
-install (FILES "${PROJECT_SOURCE_DIR}/../conf/eagle_config.ini" DESTINATION /etc/sysconfig)
+install (FILES "${PROJECT_SOURCE_DIR}/../conf/eagle_config.ini" DESTINATION /etc/eagle)
+install (FILES "${PROJECT_SOURCE_DIR}/../conf/eagle.policy" DESTINATION /etc/eagle)
 install (FILES "${PROJECT_SOURCE_DIR}/../eagle.service" DESTINATION /usr/lib/systemd/system)
 
 # release complile mode

@@ -30,7 +30,7 @@ typedef struct PcyBase {
 typedef struct SchedServicePcy {
     PcyBase base;
     int enableWattSched;
-    int WattTh;     // [0,100]
+    int wattTh;     // [0,100]
 } SchedServicePcy;
 
 typedef struct FreqServicePcy {

@@ -14,7 +14,9 @@ watt_th = 85
 enable=1
 freq_lib = libfreq_service.so
 cpufreq_gov = conservative
+# perf_loss_rate [0,100]
 perf_loss_rate = 5
+# sampling_rate [0,10000]
 sampling_rate = 0
 
 [idle_service]
