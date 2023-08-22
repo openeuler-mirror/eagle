@@ -65,6 +65,37 @@ def get_sys_state(content):
     return CST.BMC_STATE_NORMAL
 
 
+CMD_EXT_DATA_COLL = "ipmitool raw 0x30 0x92 0xdb 0x07 0x00 0x27 0x01 0x02"
+is_ext_data_available = False
+def get_sys_ext_state(content):
+    """
+    Request: collecting current state
+    Response format: db 07 00 44 01 1c 28 22 00 28 00
+    Bytes descripton:
+    1       Completion code
+    2:4     flag. fixed: OXdb0700
+    5       Parameter length
+    6:7       CPU power
+    """
+    if not is_ext_data_available:
+        return False
+    rsp = exec_shell_cmd(CMD_EXT_DATA_COLL).replace(" ", "").lower()
+    logging.debug("get_sys_ext_state. cmd: %s, rsp: %s", CMD_EXT_DATA_COLL, rsp)
+    if SUCCUSS_RSP_FLAG not in rsp:
+        logging.warning("get_sys_ext_state command failure by ipmitool.")
+        return False
+
+    base = rsp.index(SUCCUSS_RSP_FLAG) + len(SUCCUSS_RSP_FLAG)
+    base = base + 2
+    content["cpu_power"] = int(rsp[base + 2: base + 4] + rsp[base: base + 2], 16)
+    return True
+
+def update_ext_data_ability():
+    rsp = exec_shell_cmd(CMD_EXT_DATA_COLL).replace(" ", "").lower()
+    if SUCCUSS_RSP_FLAG in rsp:
+        return True
+    return False
+
 # ipmitool Check if there is device change
 CMD_CHECK_DEVICE_CHANGED = "ipmitool raw 0x30 0x92 0xdb 0x07 0x00 0x27 0x01 0x01"
 NEED_RETRAINING_FLAG = "01"  # Indicates that the device is changed.
