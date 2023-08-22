@@ -17,10 +17,8 @@
 #include "common.h"
 #include "log.h"
 #include "config.h"
-#include "devicectrl.h"
 #include "servicemgr.h"
 #include "policymgr.h"
-#include "datacollect.h"
 #include "pwrapiadpt.h"
 
 
@@ -38,9 +36,12 @@ static void PwrapiLogCallback(int level, const char *fmt, va_list vl)
 
 static int RegisterToPapis(void)
 {
-    // todo. register via powerapi.so
     PwrapiSetLogCallback(PwrapiLogCallback);
     int ret = PwrapiRegister();
+    if (ret != SUCCESS) {
+        return ret;
+    }
+    ret = PwrapiRequestControlAuth();
     if (ret != SUCCESS) {
         return ret;
     }
@@ -50,7 +51,7 @@ static int RegisterToPapis(void)
 
 static void UnRegisterFromPapis(void)
 {
-    // todo.
+    PwrapiReleaseControlAuth();
     PwrapiUnRegister();
     g_hasRegistedToPapis = FALSE;
 }
@@ -79,16 +80,6 @@ int InitEagleSystem(void)
     ret = InitServiceMgr();
     if (ret != SUCCESS) {
         Logger(ERROR, MD_NM_ECORE, "InitServiceMgr failed. ret:%d", ret);
-        return ret;
-    }
-    ret = InitDataColl();
-    if (ret != SUCCESS) {
-        Logger(ERROR, MD_NM_ECORE, "InitDataColl failed. ret:%d", ret);
-        return ret;
-    }
-    ret = InitDevCtrl();
-    if (ret != SUCCESS) {
-        Logger(ERROR, MD_NM_ECORE, "InitDevCtrl failed. ret:%d", ret);
         return ret;
     }
     return SUCCESS;
