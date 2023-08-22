@@ -39,6 +39,22 @@ int PwrapiUnRegister(void)
     return SUCCESS;
 }
 
+int PwrapiRequestControlAuth(void)
+{
+    if (PWR_RequestControlAuth() != PWR_SUCCESS) {
+         return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+
+int PwrapiReleaseControlAuth(void)
+{
+    if (PWR_ReleaseControlAuth() != PWR_SUCCESS) {
+         return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+
 int PwrapiCpuSetFreqGovernor(const char gov[])
 {
     if (PWR_CPU_SetFreqGovernor(gov) != PWR_SUCCESS) {

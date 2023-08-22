@@ -24,7 +24,8 @@ extern "C" {
 int PwrapiSetLogCallback(void(LogCallback)(int level, const char *fmt, va_list vl));
 int PwrapiRegister(void);
 int PwrapiUnRegister(void);
-
+int PwrapiRequestControlAuth(void);
+int PwrapiReleaseControlAuth(void);
 int PwrapiCpuSetFreqGovernor(const char gov[]);
 
 #ifdef __cplusplus
