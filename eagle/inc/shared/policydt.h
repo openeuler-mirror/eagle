@@ -36,8 +36,8 @@ typedef struct SchedServicePcy {
 typedef struct FreqServicePcy {
     PcyBase base;
     char freqGov[MAX_KEY_LEN];
-    int perfLossRate;   // [0.100]
-    int samplingRate;   // ms
+    int perfLossRate;   // [-1,100]
+    int samplingRate;   // us
 } FreqServicePcy;
 
 typedef struct IdleServicePcy {

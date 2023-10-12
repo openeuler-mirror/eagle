@@ -24,7 +24,7 @@
 #define DEFAULT_FILE_NUM 3
 #define DEFAULT_CONFIG_UPDATE_INTERVAL 75
 #define DEFAULT_POLICY_UPDATE_INTERVAL 5
-#define DEFAULT_POLICY_FILE_PATH "/etc/eagle/eagle.policy"
+#define DEFAULT_POLICY_FILE_PATH "/etc/eagle/eagle_policy.ini"
 #define DEFAULT_CPU_PLUGIN "libeaglecpu.so"
 #define DEFAULT_DISK_PLUGIN "libealgedisk.so"
 #define DEFAULT_NIC_PLUGIN "libeaglenic.so"
