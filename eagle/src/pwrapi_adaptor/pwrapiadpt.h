@@ -27,6 +27,7 @@ int PwrapiUnRegister(void);
 int PwrapiRequestControlAuth(void);
 int PwrapiReleaseControlAuth(void);
 int PwrapiCpuSetFreqGovernor(const char gov[]);
+int PwrapiCpuSetFreqGovAttribute(const char *attrName, const char *attrValue);
 
 #ifdef __cplusplus
 }

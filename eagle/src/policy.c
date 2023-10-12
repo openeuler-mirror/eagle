@@ -56,8 +56,8 @@
 
 #define MAX_RATE 100
 #define MIN_RATE 0
-#define MAX_FREQ_SAM_RATE 10000 // ms
-#define MIN_FREQ_SAM_RATE 0    // ms
+#define MAX_FREQ_SAM_RATE 10000000 // us
+#define MIN_FREQ_SAM_RATE 0    // us
 #define MAX_PCAP_TARGET 10000 // watt
 #define MIN_PCAP_TARGET 100    // watt
 

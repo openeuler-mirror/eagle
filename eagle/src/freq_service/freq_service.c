@@ -39,11 +39,45 @@ static inline void SrvLog(int level, const char *fmt, ...)
     }
 }
 
-static int ParsePolicy(const FreqServicePcy *schedPcy)
+#define CPUFREQ_ATTR_SAMPLING_RATE "sampling_rate"
+#define CPUFREQ_ATTR_PERF_LOSS_RATE "perf_loss_rate"
+
+static int ParsePolicy(const FreqServicePcy *freqPcy)
 {
-    if (strcmp(schedPcy->freqGov, "") != 0 ) {
-        return PwrapiCpuSetFreqGovernor(schedPcy->freqGov);
+    int ret = SUCCESS;
+    if (strcmp(freqPcy->freqGov, "") != 0) {
+        ret = PwrapiCpuSetFreqGovernor(freqPcy->freqGov);
+        if ( ret != SUCCESS)
+        {
+            SrvLog(ERROR, "freq_sevice. set cpufreq gov to %s failed.", freqPcy->freqGov);
+            return ret;
+        }
     }
+    if (freqPcy->samplingRate != 0) {
+        char str_sr[MAX_VALUE] = {0};
+        if (sprintf(str_sr, "%d", freqPcy->samplingRate) < 0) {
+            return ERR_SYS_EXCEPTION;
+        }
+        ret = PwrapiCpuSetFreqGovAttribute(CPUFREQ_ATTR_SAMPLING_RATE, str_sr);
+        if ( ret != SUCCESS)
+        {
+            SrvLog(ERROR, "freq_sevice. set gov sampling rate to %s failed.", str_sr);
+            return ret;
+        }
+    }
+    if (strcmp(freqPcy->freqGov, "seep") == 0 && freqPcy->perfLossRate != -1) {
+        char str_plr[MAX_VALUE] = {0};
+        if (sprintf(str_plr, "%d", freqPcy->perfLossRate) < 0) {
+            return ERR_SYS_EXCEPTION;
+        }
+        ret = PwrapiCpuSetFreqGovAttribute(CPUFREQ_ATTR_PERF_LOSS_RATE, str_plr);
+        if ( ret != SUCCESS)
+        {
+            SrvLog(ERROR, "freq_sevice. set gov perfLossRate to %s failed.", str_plr);
+            return ret;
+        }
+    }
+    return SUCCESS;
 }
 
 // public ===============================================================================
@@ -62,6 +96,7 @@ int SRV_SetLogCallback(void(LogCallback)(int, const char *, const char *, va_lis
 
 int SRV_Init(void)
 {
+    SrvLog(INFO, "freq_sevice initialized.");
     return SUCCESS;
 }
 
