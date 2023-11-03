@@ -15,6 +15,7 @@
 
 #include "policy.h"
 #include <string.h>
+#include <limits.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <unistd.h>
@@ -33,13 +34,21 @@
 #define PCY_ITEM_PCY_DESC "desc"
 #define PCY_ITEM_BASE_EN   "enable"
 #define PCY_ITEM_SCHED_LIB "sched_lib"
-#define PCY_ITEM_SCHED_EWS "enable_watt_sched"
-#define PCY_ITEM_SCHED_WTH "watt_th"
+#define PCY_ITEM_SCHED_WATT_ENABLE "watt_sched_enable"
+#define PCY_ITEM_SCHED_WATT_THRESHOLD "watt_threshold"
+#define PCP_ITEM_SCHED_WATT_INTERVAL "watt_interval_ms"
+#define PCP_ITEM_SCHED_WATT_DMSK "watt_domain_mask"
+#define PCP_ITEM_SCHED_WATT_PROCS "watt_procs"
+#define PCP_ITEM_SCHED_SG_ENABLE "smart_grid_enable"
+#define PCP_ITEM_SCHED_SG_VIP_PROCS "smart_grid_vip_procs"
+#define PCP_ITEM_SCHED_SG_GOV_ENABLE "smart_grid_gov_eable"
+#define PCP_ITEM_SCHED_SG_VIP_GOV "smart_grid_vip_gov"
+#define PCP_ITEM_SCHED_SG_LEV1_GOV "smart_grid_lev1_gov"
 
 #define PCY_ITEM_FREQ_LIB "freq_lib"
 #define PCY_ITEM_FREQ_GOV "cpufreq_gov"
 #define PCY_ITEM_FREQ_PLR "perf_loss_rate"
-#define PCY_ITEM_FREQ_SR "sampling_rate"
+#define PCY_ITEM_FREQ_SR "sampling_rate_us"
 
 #define PCY_ITEM_IDLE_LIB "idle_lib"
 #define PCY_ITEM_IDLE_GOV "cpuidle_gov"
@@ -56,13 +65,16 @@
 
 #define MAX_RATE 100
 #define MIN_RATE 0
+#define MIN_WATT_INTERVAL 0
+#define MAX_WATT_INTERVAL 3600000   // ms
 #define MAX_FREQ_SAM_RATE 10000000 // us
 #define MIN_FREQ_SAM_RATE 0    // us
 #define MAX_PCAP_TARGET 10000 // watt
 #define MIN_PCAP_TARGET 100    // watt
 
 static const char g_freqGov[][MAX_KEY_LEN] = {
-    {"seep"}, {"conservative"}, {"ondemand"}, {"userspace"}, {"powersave"}, {"performance"}
+    {"seep"}, {"conservative"}, {"ondemand"}, {"userspace"}, {"powersave"}, {"performance"},
+    {"schedutil"}
 };
 static const char g_idleGov[][MAX_KEY_LEN] = {{"menu"}, {"teo"}};
 static const char g_alpm[][MAX_KEY_LEN] = {{"min_power"}, {"medium_power"}, {"max_performance"}};
@@ -113,6 +125,28 @@ static int IsValueInList(const char *value, const char list[][MAX_KEY_LEN], cons
     return FALSE;
 }
 
+static inline int StrStateToIntState(const char *str, int *state)
+{
+    if (strcmp(str, PCY_STATE_ENABLE) == 0) {
+        *state = PCY_ENABLE;
+        return SUCCESS;
+    }
+    if (strcmp(str, PCY_STATE_DISABLE) == 0) {
+        *state = PCY_DISABLE;
+        return SUCCESS;
+    }
+    return ERR_FILE_CONTENT_ERROR;
+}
+
+static inline int StrToIntWithRangeChk(const char *str, int *rt, int min, int max)
+{
+    if (!NumRangeChk(str, min, max)) {
+        return ERR_FILE_CONTENT_ERROR;
+    }
+    sscanf(str, "%d", rt);
+    return SUCCESS;
+}
+
 static int FullfillPcyItem(Policy *pcy, const char *name, const char *value)
 {
     if (strcmp(name, PCY_ITEM_PCY_NAME) == 0) {
@@ -129,34 +163,44 @@ static int FullfillPcyItem(Policy *pcy, const char *name, const char *value)
 static int FullfillSchedItem(Policy *pcy, const char *name, const char *value)
 {
     if (strcmp(name, PCY_ITEM_BASE_EN) == 0) {
-        if (strcmp(value, PCY_STATE_ENABLE) == 0) {
-            pcy->schedPcy.base.enable = PCY_ENABLE;
-        } else if (strcmp(value, PCY_STATE_DISABLE) == 0) {
-            pcy->schedPcy.base.enable = PCY_DISABLE;
-        } else {
-            return ERR_FILE_CONTENT_ERROR;
-        }
-        return SUCCESS;
+        return StrStateToIntState(value, &pcy->schedPcy.base.enable);
     }
     if (strcmp(name, PCY_ITEM_SCHED_LIB) == 0) {
         strncpy(pcy->schedPcy.base.lib, value, sizeof(pcy->schedPcy.base.lib) - 1);
         return SUCCESS;
     }
-    if (strcmp(name, PCY_ITEM_SCHED_EWS) == 0) {
-        if (strcmp(value, PCY_STATE_ENABLE) == 0) {
-            pcy->schedPcy.enableWattSched = PCY_ENABLE;
-        } else if (strcmp(value, PCY_STATE_DISABLE) == 0) {
-            pcy->schedPcy.enableWattSched = PCY_DISABLE;
-        } else {
-            return ERR_FILE_CONTENT_ERROR;
-        }
+    if (strcmp(name, PCY_ITEM_SCHED_WATT_ENABLE) == 0) {
+        return StrStateToIntState(value, &pcy->schedPcy.wattEnable);
+    }
+    if (strcmp(name, PCY_ITEM_SCHED_WATT_THRESHOLD) == 0) {
+        return StrToIntWithRangeChk(value, &pcy->schedPcy.wattThreshold, MIN_RATE, MAX_RATE);
+    }
+    if (strcmp(name, PCP_ITEM_SCHED_WATT_INTERVAL) == 0) {
+        return StrToIntWithRangeChk(value, &pcy->schedPcy.wattInterval, MIN_WATT_INTERVAL, MAX_WATT_INTERVAL);
+    }
+    if (strcmp(name, PCP_ITEM_SCHED_WATT_DMSK) == 0) {
+        return StrToIntWithRangeChk(value, &pcy->schedPcy.wattMask, 0, INT_MAX);
+    }
+    if (strcmp(name, PCP_ITEM_SCHED_WATT_PROCS) == 0) {
+        strncpy(pcy->schedPcy.wattProcs, value, sizeof(pcy->schedPcy.wattProcs) - 1);
         return SUCCESS;
     }
-    if (strcmp(name, PCY_ITEM_SCHED_WTH) == 0) {
-        if (!NumRangeChk(value, MIN_RATE, MAX_RATE)) {
-            return ERR_FILE_CONTENT_ERROR;
-        }
-        sscanf(value, "%d", &pcy->schedPcy.wattTh);
+    if (strcmp(name, PCP_ITEM_SCHED_SG_ENABLE) == 0) {
+        return StrStateToIntState(value, &pcy->schedPcy.sgEnable);
+    }
+    if (strcmp(name, PCP_ITEM_SCHED_SG_VIP_PROCS) == 0) {
+        strncpy(pcy->schedPcy.sgVipProcs, value, sizeof(pcy->schedPcy.sgVipProcs) - 1);
+        return SUCCESS;
+    }
+    if (strcmp(name, PCP_ITEM_SCHED_SG_GOV_ENABLE) == 0) {
+        return StrStateToIntState(value, &pcy->schedPcy.sgGovEnable);
+    }
+    if (strcmp(name, PCP_ITEM_SCHED_SG_VIP_GOV) == 0) {
+        strncpy(pcy->schedPcy.sgVipGov, value, sizeof(pcy->schedPcy.sgVipGov));
+        return SUCCESS;
+    }
+    if (strcmp(name, PCP_ITEM_SCHED_SG_LEV1_GOV) == 0) {
+        strncpy(pcy->schedPcy.sgLev1Gov, value, sizeof(pcy->schedPcy.sgLev1Gov));
         return SUCCESS;
     }
     return ERR_FILE_CONTENT_ERROR;
@@ -165,14 +209,7 @@ static int FullfillSchedItem(Policy *pcy, const char *name, const char *value)
 static int FullfillFreqItem(Policy *pcy, const char *name, const char *value)
 {
     if (strcmp(name, PCY_ITEM_BASE_EN) == 0) {
-        if (strcmp(value, PCY_STATE_ENABLE) == 0) {
-            pcy->freqPcy.base.enable = PCY_ENABLE;
-        } else if (strcmp(value, PCY_STATE_DISABLE) == 0) {
-            pcy->freqPcy.base.enable = PCY_DISABLE;
-        } else {
-            return ERR_FILE_CONTENT_ERROR;
-        }
-        return SUCCESS;
+        return StrStateToIntState(value, &pcy->freqPcy.base.enable);
     }
     if (strcmp(name, PCY_ITEM_FREQ_LIB) == 0) {
         strncpy(pcy->freqPcy.base.lib, value, sizeof(pcy->freqPcy.base.lib) - 1);
@@ -186,18 +223,10 @@ static int FullfillFreqItem(Policy *pcy, const char *name, const char *value)
         return SUCCESS;
     }
     if (strcmp(name, PCY_ITEM_FREQ_PLR) == 0) {
-        if (!NumRangeChk(value, MIN_RATE, MAX_RATE)) {
-            return ERR_FILE_CONTENT_ERROR;
-        }
-        sscanf(value, "%d", &pcy->freqPcy.perfLossRate);
-        return SUCCESS;
+        return StrToIntWithRangeChk(value, &pcy->freqPcy.perfLossRate, MIN_RATE - 1, MAX_RATE);
     }
     if (strcmp(name, PCY_ITEM_FREQ_SR) == 0) {
-        if (!NumRangeChk(value, MIN_FREQ_SAM_RATE, MAX_FREQ_SAM_RATE)) {
-            return ERR_FILE_CONTENT_ERROR;
-        }
-        sscanf(value, "%d", &pcy->freqPcy.samplingRate);
-        return SUCCESS;
+        return StrToIntWithRangeChk(value, &pcy->freqPcy.samplingRate, MIN_FREQ_SAM_RATE, MAX_FREQ_SAM_RATE);
     }
     return ERR_FILE_CONTENT_ERROR;
 }
@@ -205,14 +234,7 @@ static int FullfillFreqItem(Policy *pcy, const char *name, const char *value)
 static int FullfillIdleItem(Policy *pcy, const char *name, const char *value)
 {
     if (strcmp(name, PCY_ITEM_BASE_EN) == 0) {
-        if (strcmp(value, PCY_STATE_ENABLE) == 0) {
-            pcy->idlePcy.base.enable = PCY_ENABLE;
-        } else if (strcmp(value, PCY_STATE_DISABLE) == 0) {
-            pcy->idlePcy.base.enable = PCY_DISABLE;
-        } else {
-            return ERR_FILE_CONTENT_ERROR;
-        }
-        return SUCCESS;
+        return StrStateToIntState(value, &pcy->idlePcy.base.enable);
     }
     if (strcmp(name, PCY_ITEM_IDLE_LIB) == 0) {
         strncpy(pcy->idlePcy.base.lib, value, sizeof(pcy->idlePcy.base.lib) - 1);
@@ -231,35 +253,17 @@ static int FullfillIdleItem(Policy *pcy, const char *name, const char *value)
 static int FullfillPcapItem(Policy *pcy, const char *name, const char *value)
 {
     if (strcmp(name, PCY_ITEM_BASE_EN) == 0) {
-        if (strcmp(value, PCY_STATE_ENABLE) == 0) {
-            pcy->pcapPcy.base.enable = PCY_ENABLE;
-        } else if (strcmp(value, PCY_STATE_DISABLE) == 0) {
-            pcy->pcapPcy.base.enable = PCY_DISABLE;
-        } else {
-            return ERR_FILE_CONTENT_ERROR;
-        }
-        return SUCCESS;
+        return StrStateToIntState(value, &pcy->pcapPcy.base.enable);
     }
     if (strcmp(name, PCY_ITEM_PCAP_LIB) == 0) {
         strncpy(pcy->pcapPcy.base.lib, value, sizeof(pcy->pcapPcy.base.lib) - 1);
         return SUCCESS;
     }
     if (strcmp(name, PCY_ITEM_PCAP_ENPCAP) == 0) {
-        if (strcmp(value, PCY_STATE_ENABLE) == 0) {
-            pcy->pcapPcy.enablePcap = PCY_ENABLE;
-        } else if (strcmp(value, PCY_STATE_DISABLE) == 0) {
-            pcy->pcapPcy.enablePcap = PCY_DISABLE;
-        } else {
-            return ERR_FILE_CONTENT_ERROR;
-        }
-        return SUCCESS;
+        return StrStateToIntState(value, &pcy->pcapPcy.enablePcap);
     }
     if (strcmp(name, PCY_ITEM_PCAP_TGT) == 0) {
-        if (!NumRangeChk(value, MIN_PCAP_TARGET, MAX_PCAP_TARGET)) {
-            return ERR_FILE_CONTENT_ERROR;
-        }
-        sscanf(value, "%d", &pcy->pcapPcy.capTarget);
-        return SUCCESS;
+        return StrToIntWithRangeChk(value, &pcy->pcapPcy.capTarget, MIN_PCAP_TARGET, MAX_PCAP_TARGET);
     }
     return ERR_FILE_CONTENT_ERROR;
 }
@@ -267,28 +271,14 @@ static int FullfillPcapItem(Policy *pcy, const char *name, const char *value)
 static int FullfillMpcItem(Policy *pcy, const char *name, const char *value)
 {
     if (strcmp(name, PCY_ITEM_BASE_EN) == 0) {
-        if (strcmp(value, PCY_STATE_ENABLE) == 0) {
-            pcy->mpcPcy.base.enable = PCY_ENABLE;
-        } else if (strcmp(value, PCY_STATE_DISABLE) == 0) {
-            pcy->mpcPcy.base.enable = PCY_DISABLE;
-        } else {
-            return ERR_FILE_CONTENT_ERROR;
-        }
-        return SUCCESS;
+        return StrStateToIntState(value, &pcy->mpcPcy.base.enable);
     }
     if (strcmp(name, PCY_ITEM_MPC_LIB) == 0) {
         strncpy(pcy->mpcPcy.base.lib, value, sizeof(pcy->mpcPcy.base.lib) - 1);
         return SUCCESS;
     }
     if (strcmp(name, PCY_ITEM_MPC_ENMPC) == 0) {
-        if (strcmp(value, PCY_STATE_ENABLE) == 0) {
-            pcy->mpcPcy.enableMpc = PCY_ENABLE;
-        } else if (strcmp(value, PCY_STATE_DISABLE) == 0) {
-            pcy->mpcPcy.enableMpc = PCY_DISABLE;
-        } else {
-            return ERR_FILE_CONTENT_ERROR;
-        }
-        return SUCCESS;
+        return StrStateToIntState(value, &pcy->mpcPcy.enableMpc);
     }
     return ERR_FILE_CONTENT_ERROR;
 }

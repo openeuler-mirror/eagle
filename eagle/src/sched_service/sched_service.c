@@ -18,6 +18,7 @@
 #include <string.h>
 #include "public.h"
 #include "policydt.h"
+#include "pwrapiadpt.h"
 
 static void DefaultLogCallback(int level, const char *usInfo, const char *fmt, va_list vl)
 {
@@ -41,9 +42,18 @@ static inline void SrvLog(int level, const char *fmt, ...)
 static int ParsePolicy(const SchedServicePcy *schedPcy)
 {
     int ret = SUCCESS;
-    if (schedPcy->enableWattSched) {
-        // todo: enable watt scheduling.
+    (void)PwrProcSetWattState(schedPcy->wattEnable);
+    if (schedPcy->wattEnable) {
+        (void)PwrapiProcSetWattAttr(schedPcy);
+        (void)PwrapiProcAddWattProcs(schedPcy->wattProcs);
     }
+
+    (void)PwrProcSetSmartGridState(schedPcy->sgEnable);
+    if (schedPcy->sgEnable) {
+        (void)PwrapiProcAddSmartGridProcs(schedPcy->sgVipProcs);
+        (void)PwrapiProcSetSmartGridGov(schedPcy);
+    }
+
     return ret;
 }
 

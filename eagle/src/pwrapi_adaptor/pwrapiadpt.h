@@ -16,6 +16,7 @@
 #define EAGLE_PWRAPI_ADAPTOR_H__
 
 #include <stdio.h>
+#include "policydt.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +29,12 @@ int PwrapiRequestControlAuth(void);
 int PwrapiReleaseControlAuth(void);
 int PwrapiCpuSetFreqGovernor(const char gov[]);
 int PwrapiCpuSetFreqGovAttribute(const char *attrName, const char *attrValue);
+int PwrProcSetWattState(int state);
+int PwrapiProcSetWattAttr(const SchedServicePcy *schedPcy);
+int PwrapiProcAddWattProcs(const char *keyWords);
+int PwrProcSetSmartGridState(int state);
+int PwrapiProcAddSmartGridProcs(const char *keyWords);
+int PwrapiProcSetSmartGridGov(const SchedServicePcy *schedPcy);
 
 #ifdef __cplusplus
 }
