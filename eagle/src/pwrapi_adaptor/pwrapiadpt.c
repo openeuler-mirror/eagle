@@ -15,8 +15,11 @@
 
 #include "pwrapiadpt.h"
 #include <string.h>
+#include <stdlib.h>
 #include "public.h"
 #include "powerapi.h"
+
+#define ALL_PROCS_TAG "all"
 
 int PwrapiSetLogCallback(void(LogCallback)(int level, const char *fmt, va_list vl))
 {
@@ -76,6 +79,94 @@ int PwrapiCpuSetFreqGovAttribute(const char *attrName, const char *attrValue)
     strncpy(govAttr.attr.key, attrName, PWR_MAX_ELEMENT_NAME_LEN - 1);
     strncpy(govAttr.attr.value, attrValue, PWR_MAX_VALUE_LEN - 1);
     if (PWR_CPU_SetFreqGovAttr(&govAttr) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+
+int PwrProcSetWattState(int state)
+{
+    if (PWR_PROC_SetWattState(state) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+
+int PwrapiProcSetWattAttr(const SchedServicePcy *schedPcy)
+{
+    if (!schedPcy) {
+        return ERR_NULL_POINTER;
+    }
+    PWR_PROC_WattAttrs wattAttrs = {0};
+    wattAttrs.scaleThreshold = schedPcy->wattThreshold;
+    wattAttrs.scaleInterval = schedPcy->wattInterval;
+    wattAttrs.domainMask = schedPcy->wattMask;
+    if (PWR_PROC_SetWattAttrs(&wattAttrs) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+
+int PwrapiProcAddWattProcs(const char *keyWords)
+{
+    const char *kw = NULL;
+    if (keyWords && strcmp(keyWords, ALL_PROCS_TAG) != 0) {
+        kw = keyWords;
+    }
+    pid_t procs[PWR_MAX_PROC_NUM] = {0};
+    uint32_t num = PWR_MAX_PROC_NUM;
+    if (PWR_PROC_QueryProcs(kw, procs, &num) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    if (num != 0) {
+        if (PWR_PROC_AddWattProcs(procs, num) != PWR_SUCCESS) {
+            return ERR_INVOKE_PWRAPI_FAILED;
+        }
+    }
+    return SUCCESS;
+}
+
+int PwrProcSetSmartGridState(int state)
+{
+    if (PWR_PROC_SetSmartGridState(state) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+
+int PwrapiProcAddSmartGridProcs(const char *keyWords)
+{
+    const char *kw = NULL;
+    if (keyWords && strcmp(keyWords, ALL_PROCS_TAG) != 0) {
+        kw = keyWords;
+    }
+    size_t size = sizeof(PWR_PROC_SmartGridProcs) + PWR_MAX_PROC_NUM * sizeof(pid_t);
+    PWR_PROC_SmartGridProcs *sgProcs = (PWR_PROC_SmartGridProcs *)malloc(size);
+    if (!sgProcs) {
+        return ERR_SYS_EXCEPTION;
+    }
+    bzero(sgProcs, size);
+    sgProcs->level = PWR_PROC_SG_LEVEL_0; // vip
+    sgProcs->procNum = PWR_MAX_PROC_NUM;
+
+    if (PWR_PROC_QueryProcs(kw, sgProcs->procs, &(sgProcs->procNum)) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    if (sgProcs->procNum != 0) {
+        if (PWR_PROC_SetSmartGridLevel(sgProcs) != PWR_SUCCESS) {
+            return ERR_INVOKE_PWRAPI_FAILED;
+        }
+    }
+    return SUCCESS;
+}
+
+int PwrapiProcSetSmartGridGov(const SchedServicePcy *schedPcy)
+{
+    PWR_PROC_SmartGridGov sgGov = {0};
+    sgGov.sgAgentState = schedPcy->sgGovEnable;
+    strncpy(sgGov.sgLevel0Gov, schedPcy->sgVipGov, sizeof(sgGov.sgLevel0Gov));
+    strncpy(sgGov.sgLevel1Gov, schedPcy->sgLev1Gov, sizeof(sgGov.sgLevel1Gov));
+    if (PWR_PROC_SetSmartGridGov(&sgGov) != PWR_SUCCESS) {
         return ERR_INVOKE_PWRAPI_FAILED;
     }
     return SUCCESS;

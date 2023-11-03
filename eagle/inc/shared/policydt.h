@@ -19,7 +19,8 @@
 
 enum PcyState {
     PCY_DISABLE = 0,
-    PCY_ENABLE = 1
+    PCY_ENABLE = 1,
+    PCY_NONE = 99
 };
 
 typedef struct PcyBase {
@@ -29,8 +30,16 @@ typedef struct PcyBase {
 
 typedef struct SchedServicePcy {
     PcyBase base;
-    int enableWattSched;
-    int wattTh;     // [0,100]
+    int wattEnable;
+    int wattThreshold;     // [0,100]
+    int wattInterval;      // [0, 3600000] ms
+    int wattMask;
+    int sgEnable;       //  smart grid
+    int sgGovEnable;
+    char wattProcs[MAX_VALUE];
+    char sgVipProcs[MAX_VALUE];
+    char sgVipGov[MAX_KEY_LEN];
+    char sgLev1Gov[MAX_KEY_LEN];
 } SchedServicePcy;
 
 typedef struct FreqServicePcy {
