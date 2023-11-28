@@ -72,7 +72,9 @@ def _init_system():
     if not mpcc.check_mpc_enabled():
         logging.critical("MPC function is not enabled on this machine, system will exit.")
         return False
-
+    if mpcc.update_ext_data_ability():
+        mpcc.is_ext_data_available = True
+        logging.info("is_ext_data_available = %s", mpcc.is_ext_data_available)
     pd.set_option("display.max_columns", None)
     pd.set_option("display.max_rows", None)
 

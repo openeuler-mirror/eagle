@@ -6,18 +6,22 @@ Collect system state
 
 import time
 import logging
+import copy
 import pandas as pd
+import numpy as np
+from datetime import datetime
 from mpctool.ipmi_opt.fan_controller import FanController
 from mpctool.ipmi_opt import mpc_controller as mpcc
 from mpctool.common import sys_tool as stool
 from mpctool.common import mpc_const as CST
 
-STABLE_TH = 0.2
-
+STABLE_TH = 2
+KERNEL_SIZE = 5
 
 class Queue():
     def __init__(self, max_size):
         self.array = []
+        self.debounce_array = np.array([])
         if max_size > 0:
             self.max_size = max_size
         else:
@@ -29,11 +33,17 @@ class Queue():
     def push(self, value):
         if self.is_full():
             del self.array[0]
+            self.debounce_array = np.delete(self.debounce_array, 0)
         self.array.append(value)
+        # debounce operation
+        if len(self.array) >= KERNEL_SIZE:
+            debounce_value = np.convolve(self.array[-5:], np.ones((KERNEL_SIZE,)) / KERNEL_SIZE, mode='valid')
+            self.debounce_array = np.append(self.debounce_array, debounce_value)
 
     def is_stable(self):
         if self.is_full():
-            if max(self.array) - min(self.array) <= STABLE_TH:
+            logging.debug('debounce_array:%s', self.debounce_array)
+            if max(self.debounce_array) - min(self.debounce_array) <= STABLE_TH:
                 return True
         return False
 
@@ -50,6 +60,8 @@ def _get_sys_state_from_bmc(state):
         state["cpu_temp"] = content["cpu_temp"]
         state["other_power"] = str(float(state["PowerConsumedWatts"]) -
                                    float(state["FanTotalPowerWatts"]))
+    if mpcc.get_sys_ext_state(content):
+        state["other_power"] = content["cpu_power"]
     return ret
 
 
@@ -85,15 +97,21 @@ def _check_cpu_usage(usage):
 
 
 MAX_UNSTABLE_DATA = 200
-
+MAX_STAGE_TIME = 4800
 
 def _loop_to_stable_state(interval, is_last_speed):
     unstable_data = pd.DataFrame()
     temp_his = Queue(60)
+    loop_start_time = datetime.now()
     while True:
         time.sleep(interval)
-        ret, state = _sys_prober()
+        loop_check_time = datetime.now()
 
+        if (loop_check_time - loop_start_time).seconds > MAX_STAGE_TIME:
+            logging.warning('Data collection timed out, time:%s', (loop_check_time - loop_start_time).seconds)
+            return CST.COLL_STATE_INVALID_LONG, unstable_data
+
+        ret, state = _sys_prober()
         if not _check_cpu_usage(state["cpu_percent"]):
             unstable_data.drop(unstable_data.index, inplace=True)
             return CST.COLL_STATE_INVALID_SHORT, unstable_data
@@ -107,6 +125,7 @@ def _loop_to_stable_state(interval, is_last_speed):
             temp_his.push(float(state["cpu_temp"]))
             if temp_his.is_stable():
                 unstable_data.drop(unstable_data.index, inplace=True)
+                logging.debug('Collect stable data in subspeed, time:%s', (loop_check_time - loop_start_time).seconds)
                 return CST.COLL_STATE_VALID, unstable_data
         else:
             logging.warning("Exception happens, the collecting stoped. ret: %s, is_last_speed: %d",
@@ -117,7 +136,6 @@ def _loop_to_stable_state(interval, is_last_speed):
             else:
                 unstable_data.drop(unstable_data.index, inplace=True)
                 return CST.COLL_STATE_INVALID_LONG, unstable_data
-
 
 def _do_collect_stable_thermal_data(interval):
     '''
@@ -156,6 +174,7 @@ def _do_collect_stable_thermal_data(interval):
 
             state_df = pd.DataFrame(state, index=[0, ])
             collected_data = pd.concat([collected_data, state_df], ignore_index=True)
+
         if result != CST.COLL_STATE_VALID:
             break
 
