@@ -21,6 +21,7 @@ CPU_USAGE_STOP_TH = 1.5     # percentage
 CHECK_UPDATE_INTERVAL = 10  # seconds. Interval for retry loop.
 LOW_USAGE_LASTING_TIMES_TH = 6
 COLLECTING_INTERVAL = 1     # seconds. Interval for collecting.
+SET_FAN_PWM_WAITING_INTERVAL = 2 # seconds. Interval for collecting after setting fan pwm.
 MAX_LONG_TERM_SLEEP_TIMES = 5
 LONG_TERM_SLEEP_TIME = 30 * 60  # seconds
 

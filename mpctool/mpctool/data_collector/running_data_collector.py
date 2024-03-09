@@ -97,7 +97,7 @@ def _check_cpu_usage(usage):
 
 
 MAX_UNSTABLE_DATA = 200
-MAX_STAGE_TIME = 4800
+MAX_STAGE_TIME = 480
 
 def _loop_to_stable_state(interval, is_last_speed):
     unstable_data = pd.DataFrame()
@@ -154,6 +154,7 @@ def _do_collect_stable_thermal_data(interval):
     for speed in num_speed:
         FanController.set_speed_by_duty(speed)
         logging.debug("Set fan to speed: %d%%", speed)
+        time.sleep(CST.SET_FAN_PWM_WAITING_INTERVAL)
         is_last_speed = speed == num_speed[-1]
         coll_state, unstable_data = _loop_to_stable_state(interval, is_last_speed)
         if coll_state != CST.COLL_STATE_VALID:
