@@ -4,7 +4,6 @@
 Fan controller
 """
 
-import subprocess
 from mpctool.common.sys_tool import exec_shell_cmd
 
 # ipmitool. Cmd prefix
