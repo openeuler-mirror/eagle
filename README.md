@@ -1,7 +1,8 @@
 # eagle
 
 #### 介绍
-EAGLE(Energy Aware intelliGent scheduler) is a service for dynamically tuning the OS based on energy efficiency.
+EAGLE（Energy Aware intelliGent scheduler）是一种基于能效动态调整操作系统的服务。
+
 
 #### 软件架构
 软件架构说明
