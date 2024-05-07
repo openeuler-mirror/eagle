@@ -5,7 +5,7 @@ Description= Eagle Service.
 ExecStart=/usr/sbin/eagle  /etc/eagle/eagle_config.ini
 Restart=always
 RestartSec=5
-User=root
+User=eagle
 
 [Install]
 WantedBy=multi-user.target
