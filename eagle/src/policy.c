@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <numa.h>
 #include "log.h"
 #include "utils.h"
 
@@ -38,6 +39,7 @@
 #define PCY_ITEM_SCHED_WATT_THRESHOLD "watt_threshold"
 #define PCP_ITEM_SCHED_WATT_INTERVAL "watt_interval_ms"
 #define PCP_ITEM_SCHED_WATT_DMSK "watt_domain_mask"
+#define PCP_ITEM_SCHED_WATT_FD "watt_first_domain"
 #define PCP_ITEM_SCHED_WATT_PROCS "watt_procs"
 #define PCP_ITEM_SCHED_SG_ENABLE "smart_grid_enable"
 #define PCP_ITEM_SCHED_SG_VIP_PROCS "smart_grid_vip_procs"
@@ -78,6 +80,8 @@ static const char g_freqGov[][MAX_KEY_LEN] = {
 };
 static const char g_idleGov[][MAX_KEY_LEN] = {{"menu"}, {"teo"}};
 static const char g_alpm[][MAX_KEY_LEN] = {{"min_power"}, {"medium_power"}, {"max_performance"}};
+static int g_cpuNum = 0;    // cpu core number
+static int g_numaNum = 0;   // NUMA number
 
 
 static int CheckFile(const char *file)
@@ -125,6 +129,16 @@ static int IsValueInList(const char *value, const char list[][MAX_KEY_LEN], cons
     return FALSE;
 }
 
+static int StrCpyWithFreqGovCheck(char *govItem, const char *gov, int size)
+{
+    if (!IsValueInList(gov, g_freqGov, sizeof(g_freqGov) / sizeof(g_freqGov[0]))) {
+        Logger(ERROR, MD_NM_PCY, "Invalid cpufreq governor. item: %s gov:%s.", govItem, gov);
+        return ERR_FILE_CONTENT_ERROR;
+    }
+    strncpy(govItem, gov, size - 1);
+    return SUCCESS;
+}
+
 static inline int StrStateToIntState(const char *str, int *state)
 {
     if (strcmp(str, PCY_STATE_ENABLE) == 0) {
@@ -135,12 +149,14 @@ static inline int StrStateToIntState(const char *str, int *state)
         *state = PCY_DISABLE;
         return SUCCESS;
     }
+    Logger(ERROR, MD_NM_PCY, "Invalid value. Allow 0 & 1 only.");
     return ERR_FILE_CONTENT_ERROR;
 }
 
 static inline int StrToIntWithRangeChk(const char *str, int *rt, int min, int max)
 {
     if (!NumRangeChk(str, min, max)) {
+        Logger(ERROR, MD_NM_PCY, "Check value failed. Number not in range[%d, %d]", min, max);
         return ERR_FILE_CONTENT_ERROR;
     }
     sscanf(str, "%d", rt);
@@ -157,6 +173,7 @@ static int FullfillPcyItem(Policy *pcy, const char *name, const char *value)
         strncpy(pcy->pcyDesc, value, sizeof(pcy->pcyDesc) - 1);
         return SUCCESS;
     }
+    Logger(ERROR, MD_NM_PCY, "Invalid Item: %s in segment [%s]", PCY_SEC_PCY, name);
     return ERR_FILE_CONTENT_ERROR;
 }
 
@@ -179,7 +196,10 @@ static int FullfillSchedItem(Policy *pcy, const char *name, const char *value)
         return StrToIntWithRangeChk(value, &pcy->schedPcy.wattInterval, MIN_WATT_INTERVAL, MAX_WATT_INTERVAL);
     }
     if (strcmp(name, PCP_ITEM_SCHED_WATT_DMSK) == 0) {
-        return StrToIntWithRangeChk(value, &pcy->schedPcy.wattMask, 0, INT_MAX);
+        return StrToIntWithRangeChk(value, &pcy->schedPcy.wattMask, 0, g_numaNum);
+    }
+    if (strcmp(name, PCP_ITEM_SCHED_WATT_FD) == 0) {
+        StrToIntWithRangeChk(value, &pcy->schedPcy.wattFirstDomain, 0, g_cpuNum);
     }
     if (strcmp(name, PCP_ITEM_SCHED_WATT_PROCS) == 0) {
         strncpy(pcy->schedPcy.wattProcs, value, sizeof(pcy->schedPcy.wattProcs) - 1);
@@ -196,13 +216,12 @@ static int FullfillSchedItem(Policy *pcy, const char *name, const char *value)
         return StrStateToIntState(value, &pcy->schedPcy.sgGovEnable);
     }
     if (strcmp(name, PCP_ITEM_SCHED_SG_VIP_GOV) == 0) {
-        strncpy(pcy->schedPcy.sgVipGov, value, sizeof(pcy->schedPcy.sgVipGov));
-        return SUCCESS;
+        return StrCpyWithFreqGovCheck(pcy->schedPcy.sgVipGov, value, sizeof(pcy->schedPcy.sgVipGov));
     }
     if (strcmp(name, PCP_ITEM_SCHED_SG_LEV1_GOV) == 0) {
-        strncpy(pcy->schedPcy.sgLev1Gov, value, sizeof(pcy->schedPcy.sgLev1Gov));
-        return SUCCESS;
+        return StrCpyWithFreqGovCheck(pcy->schedPcy.sgLev1Gov, value, sizeof(pcy->schedPcy.sgLev1Gov));
     }
+    Logger(ERROR, MD_NM_PCY, "Invalid Item: %s in segment [%s]", PCY_SEC_SCHED, name);
     return ERR_FILE_CONTENT_ERROR;
 }
 
@@ -216,11 +235,7 @@ static int FullfillFreqItem(Policy *pcy, const char *name, const char *value)
         return SUCCESS;
     }
     if (strcmp(name, PCY_ITEM_FREQ_GOV) == 0) {
-        if (!IsValueInList(value, g_freqGov, sizeof(g_freqGov) / sizeof(g_freqGov[0]))) {
-            return ERR_FILE_CONTENT_ERROR;
-        }
-        strncpy(pcy->freqPcy.freqGov, value, sizeof(pcy->freqPcy.freqGov) - 1);
-        return SUCCESS;
+        return StrCpyWithFreqGovCheck(pcy->freqPcy.freqGov, value, sizeof(pcy->freqPcy.freqGov));
     }
     if (strcmp(name, PCY_ITEM_FREQ_PLR) == 0) {
         return StrToIntWithRangeChk(value, &pcy->freqPcy.perfLossRate, MIN_RATE - 1, MAX_RATE);
@@ -228,6 +243,7 @@ static int FullfillFreqItem(Policy *pcy, const char *name, const char *value)
     if (strcmp(name, PCY_ITEM_FREQ_SR) == 0) {
         return StrToIntWithRangeChk(value, &pcy->freqPcy.samplingRate, MIN_FREQ_SAM_RATE, MAX_FREQ_SAM_RATE);
     }
+    Logger(ERROR, MD_NM_PCY, "Invalid Item: %s in segment [%s]", PCY_SEC_FREQ, name);
     return ERR_FILE_CONTENT_ERROR;
 }
 
@@ -242,11 +258,13 @@ static int FullfillIdleItem(Policy *pcy, const char *name, const char *value)
     }
     if (strcmp(name, PCY_ITEM_IDLE_GOV) == 0) {
         if (!IsValueInList(value, g_idleGov, sizeof(g_idleGov) / sizeof(g_idleGov[0]))) {
+            Logger(ERROR, MD_NM_PCY, "Invalid cpuidle governor. item: %s gov:%s.", name, value);
             return ERR_FILE_CONTENT_ERROR;
         }
         strncpy(pcy->idlePcy.idleGov, value, sizeof(pcy->idlePcy.idleGov) - 1);
         return SUCCESS;
     }
+    Logger(ERROR, MD_NM_PCY, "Invalid Item: %s in segment [%s]", PCY_SEC_IDLE, name);
     return ERR_FILE_CONTENT_ERROR;
 }
 
@@ -265,6 +283,7 @@ static int FullfillPcapItem(Policy *pcy, const char *name, const char *value)
     if (strcmp(name, PCY_ITEM_PCAP_TGT) == 0) {
         return StrToIntWithRangeChk(value, &pcy->pcapPcy.capTarget, MIN_PCAP_TARGET, MAX_PCAP_TARGET);
     }
+    Logger(ERROR, MD_NM_PCY, "Invalid Item: %s in segment [%s]", PCY_SEC_PCAP, name);
     return ERR_FILE_CONTENT_ERROR;
 }
 
@@ -280,31 +299,34 @@ static int FullfillMpcItem(Policy *pcy, const char *name, const char *value)
     if (strcmp(name, PCY_ITEM_MPC_ENMPC) == 0) {
         return StrStateToIntState(value, &pcy->mpcPcy.enableMpc);
     }
+    Logger(ERROR, MD_NM_PCY, "Invalid Item: %s in segment [%s]", PCY_SEC_MPC, name);
     return ERR_FILE_CONTENT_ERROR;
 }
 
 static int FullfillPolicyItem(Policy *pcy, const char *section, const char *name, const char *value)
 {
-    // code to be optimized.
+    int ret = SUCCESS;
     if (strcmp(section, PCY_SEC_PCY) == 0) {
-        return FullfillPcyItem(pcy, name, value);
+        ret = FullfillPcyItem(pcy, name, value);
+    } else if (strcmp(section, PCY_SEC_SCHED) == 0) {
+        ret = FullfillSchedItem(pcy, name, value);
+    } else if (strcmp(section, PCY_SEC_FREQ) == 0) {
+        ret = FullfillFreqItem(pcy, name, value);
+    } else if (strcmp(section, PCY_SEC_IDLE) == 0) {
+        ret = FullfillIdleItem(pcy, name, value);
+    } else if (strcmp(section, PCY_SEC_PCAP) == 0) {
+        ret = FullfillPcapItem(pcy, name, value);
+    } else if (strcmp(section, PCY_SEC_MPC) == 0) {
+        ret = FullfillMpcItem(pcy, name, value);
+    } else {
+        ret = ERR_FILE_CONTENT_ERROR;
+        Logger(ERROR, MD_NM_PCY, "Invalid segment [%s]", section);
     }
-    if (strcmp(section, PCY_SEC_SCHED) == 0) {
-        return FullfillSchedItem(pcy, name, value);
+    if (ret != SUCCESS) {
+        Logger(ERROR, MD_NM_PCY, "Policy Content Error: seg:[%s] item:%s value:%s",
+            section, name, value);
     }
-    if (strcmp(section, PCY_SEC_FREQ) == 0) {
-        return FullfillFreqItem(pcy, name, value);
-    }
-    if (strcmp(section, PCY_SEC_IDLE) == 0) {
-        return FullfillIdleItem(pcy, name, value);
-    }
-    if (strcmp(section, PCY_SEC_PCAP) == 0) {
-        return FullfillPcapItem(pcy, name, value);
-    }
-    if (strcmp(section, PCY_SEC_MPC) == 0) {
-        return FullfillMpcItem(pcy, name, value);
-    }
-    return ERR_FILE_CONTENT_ERROR;
+    return ret;
 }
 
 static int ParsePolicyItems(FILE *file, Policy *pcy)
@@ -372,6 +394,8 @@ int InitPolicy(const char policyFilePath[], Policy *pcy)
     if (!pcy) {
         return ERR_NULL_POINTER;
     }
+    g_cpuNum = sysconf(_SC_NPROCESSORS_CONF);
+    g_numaNum = numa_max_node() + 1;
     int ret = CheckFile(policyFilePath);
     if (ret != SUCCESS) {
         Logger(ERROR, MD_NM_PCY, "CheckFile failed. ret:%d", ret);

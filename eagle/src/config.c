@@ -73,9 +73,6 @@ static int InitPolicyCfg(void)
 {
     bzero(&g_policyCfg, sizeof(g_policyCfg));
     strncpy(g_policyCfg.policyFile, DEFAULT_POLICY_FILE_PATH, sizeof(g_policyCfg.policyFile) - 1);
-    strncpy(g_policyCfg.cpuPlugin, DEFAULT_CPU_PLUGIN, sizeof(g_policyCfg.cpuPlugin) - 1);
-    strncpy(g_policyCfg.diskPlugin, DEFAULT_DISK_PLUGIN, sizeof(g_policyCfg.diskPlugin) - 1);
-    strncpy(g_policyCfg.nicPlugin, DEFAULT_NIC_PLUGIN, sizeof(g_policyCfg.nicPlugin) - 1);
     return SUCCESS;
 }
 
@@ -98,15 +95,6 @@ static int UpdatePolicyCfg(enum CnfItemType type, char *value)
                 return ERR_INVALIDE_PARAM;
             }
             strncpy(g_policyCfg.policyFile, value, sizeof(g_policyCfg.policyFile) - 1);
-            break;
-        case E_CFG_IT_CPU:
-            strncpy(g_policyCfg.cpuPlugin, value, sizeof(g_policyCfg.cpuPlugin) - 1);
-            break;
-        case E_CFG_IT_DSK:
-            strncpy(g_policyCfg.diskPlugin, value, sizeof(g_policyCfg.diskPlugin) - 1);
-            break;
-        case E_CFG_IT_NET:
-            strncpy(g_policyCfg.nicPlugin, value, sizeof(g_policyCfg.nicPlugin) - 1);
             break;
         default:
             break;
@@ -286,6 +274,21 @@ static int LoadConfigFile(void)
     }
     ret = GetCfgItem(realpathRes);
     return ret;
+}
+
+int UpdateConfigPath(const char* configPath)
+{
+    if (!configPath) {
+        Logger(ERROR, MD_NM_CFG, "Update config path failed.");
+        return ERR_NULL_POINTER;
+    }
+    if (access(configPath, F_OK) != 0) {
+        Logger(ERROR, MD_NM_CFG, "The specified configuration file does not exist");
+        return ERR_INVALIDE_PARAM;
+    }
+
+    strncpy(g_configPath, configPath, sizeof(g_configPath) - 1);
+    return SUCCESS;
 }
 
 int InitConfig(void)

@@ -21,9 +21,30 @@
 
 #define ALL_PROCS_TAG "all"
 
+static void (*g_loger)(int level, const char *fmt, va_list vl) = NULL;
+static inline void PrintLog(int level, const char *fmt, ...)
+{
+    if (g_loger) {
+        va_list vl;
+        va_start(vl, fmt);
+        g_loger(level, fmt, vl);
+        va_end(vl);
+    }
+}
+
+// public==============================================================================
 int PwrapiSetLogCallback(void(LogCallback)(int level, const char *fmt, va_list vl))
 {
     if (PWR_SetLogCallback(LogCallback) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    g_loger = LogCallback;
+    return SUCCESS;
+}
+
+int PwrapiSetEventCallback(void EventCallback(const PWR_COM_EventInfo *eventInfo))
+{
+    if (PWR_SetEventCallback(EventCallback) != PWR_SUCCESS) {
         return ERR_INVOKE_PWRAPI_FAILED;
     }
     return SUCCESS;
@@ -32,6 +53,7 @@ int PwrapiSetLogCallback(void(LogCallback)(int level, const char *fmt, va_list v
 int PwrapiRegister(void)
 {
     if (PWR_Register() != PWR_SUCCESS) {
+        PrintLog(ERROR, "Register to powerapi failed.");
         return ERR_INVOKE_PWRAPI_FAILED;
     }
     return SUCCESS;

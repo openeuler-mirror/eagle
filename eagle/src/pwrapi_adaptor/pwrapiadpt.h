@@ -17,12 +17,14 @@
 
 #include <stdio.h>
 #include "policydt.h"
+#include "pwrdata.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 int PwrapiSetLogCallback(void(LogCallback)(int level, const char *fmt, va_list vl));
+int PwrapiSetEventCallback(void EventCallback(const PWR_COM_EventInfo *eventInfo));
 int PwrapiRegister(void);
 int PwrapiUnRegister(void);
 int PwrapiRequestControlAuth(void);
