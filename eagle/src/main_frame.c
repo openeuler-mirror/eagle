@@ -74,10 +74,16 @@ static void SetupSignal(void)
 int main(int argc, const char *args[])
 {
     int ret;
-    /* if (argc < APP_ARGC) {
+    if (argc < APP_ARGC) {
         PrintUsage(args);
-        return -1;
-    } */ // todo 增加启动参数，比如指定配置文件路径
+            exit(-1);
+    } else {
+        ret = UpdateConfigPath(args[1]);
+        if (ret != SUCCESS) {
+            printf("Update config path failed. ret:%d, path:%s", ret, args[1]);
+            exit(-1);
+        }
+    }
 
     ret = BaseInit();
     if (ret != SUCCESS) {
@@ -103,7 +109,7 @@ int main(int argc, const char *args[])
             CheckAndUpdatePolicy();
         }
     }
-    StopEagleSystem();
+    StopEagleSystem(EXIT_MODE_RESTORE);
     ClearEnv();
     return 0;
 }

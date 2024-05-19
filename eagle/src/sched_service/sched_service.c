@@ -94,7 +94,7 @@ int SRV_Update(void* pcy)
     return ParsePolicy((SchedServicePcy*)pcy);
 }
 
-int SRV_Stop(void)
+int SRV_Stop(int mode)
 {
     // todo
     return SUCCESS;

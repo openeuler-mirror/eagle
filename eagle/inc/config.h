@@ -17,17 +17,14 @@
 #include <stdint.h>
 #include "common.h"
 
-#define DEFAULT_LOG_PATH "/opt/os_data/log"
-#define DEFAULT_LOG_PATH_BAK "/opt/os_data/log/bak"
+#define DEFAULT_LOG_PATH "/var/log/eagle"
+#define DEFAULT_LOG_PATH_BAK "/var/log/eagle/bak"
 #define DEFAULT_LOG_PFX "eagle.log"
 #define DEFAULT_FILE_SIZE 10 // MB
 #define DEFAULT_FILE_NUM 3
 #define DEFAULT_CONFIG_UPDATE_INTERVAL 75
 #define DEFAULT_POLICY_UPDATE_INTERVAL 5
 #define DEFAULT_POLICY_FILE_PATH "/etc/eagle/eagle_policy.ini"
-#define DEFAULT_CPU_PLUGIN "libeaglecpu.so"
-#define DEFAULT_DISK_PLUGIN "libealgedisk.so"
-#define DEFAULT_NIC_PLUGIN "libeaglenic.so"
 
 #define DEFAULT_CONFIG_ITEM_TYPE (-1)
 #define CNF_ITEM_CNT 12
@@ -78,6 +75,7 @@ typedef struct TimerCfg {
     int policyUpdateInterval;
 } TimerCfg;
 
+int UpdateConfigPath(const char* configPath);
 int InitConfig(void);
 LogCfg *GetLogCfg(void);
 PolicyCfg *GetPolicyCfg(void);

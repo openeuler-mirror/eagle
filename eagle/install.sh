@@ -3,10 +3,11 @@
 cd build
 sudo make install
 useradd -m eagle
-chown -R eagle /etc/eagle
+chown -R eagle:eagle /etc/eagle
 
 mkdir /var/log/eagle
-chown -R eagle /var/log/eagle
+mkdir /var/log/eagle/bak
+chown -R eagle:eagle /var/log/eagle
 
 #Add user "eagle" to POWERAPI list
 PWRAPI_CONF_FILE=/etc/sysconfig/pwrapis/pwrapis_config.ini

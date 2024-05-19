@@ -17,6 +17,6 @@
 
 int InitServiceMgr(void);
 int StartServices(void);
-void StopServices(void);
+void StopServices(int mode);
 void UninitServiceMgr(void);
 #endif

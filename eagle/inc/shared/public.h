@@ -239,4 +239,10 @@ enum LogLevel {
     WARNING,
     ERROR
 };
+
+enum EXIT_MODE {
+    EXIT_MODE_RESTORE = 0,
+    EXIT_MODE_KEEP_STATUS = 1
+};
+
 #endif

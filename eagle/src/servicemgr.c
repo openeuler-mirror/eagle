@@ -29,7 +29,7 @@ typedef int (*SrvFpSetLogCallback)(void(LogCallback)(int, const char *, const ch
 typedef int (*SrvFpInit)(void);
 typedef int (*SrvFpStart)(void* pcy);
 typedef int (*SrvFpUpdate)(void* pcy);
-typedef int (*SrvFpStop)(void);
+typedef int (*SrvFpStop)(int mode);
 typedef int (*SrvFpUninit)(void);
 
 enum ServiceState {
@@ -148,11 +148,11 @@ int StartServices(void)
     return SUCCESS;
 }
 
-void StopServices(void)
+void StopServices(int mode)
 {
     for (int i = 0; i < MAX_SERVICE_NUM; i++) {
         if (services[i].stop) {
-            services[i].stop();
+            services[i].stop(mode);
             services[i].status = ST_LOADED;
         }
     }
@@ -162,7 +162,7 @@ void UninitServiceMgr(void)
 {
     for (int i = 0; i < MAX_SERVICE_NUM; i++) {
         if (services[i].status == ST_RUNNING && services[i].stop) {
-            services[i].stop();
+            services[i].stop(EXIT_MODE_RESTORE);
         }
         if (services[i].uninit) {
             services[i].uninit();

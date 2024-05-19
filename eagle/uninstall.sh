@@ -12,9 +12,9 @@ else
     rm /usr/lib64/libsched_service.so
     rm /usr/lib64/libfreq_service.so
     rm /usr/sbin/eagle
-    rm -R /etc/eagle
     rm /usr/lib/systemd/system/eagle.service
 fi
-# rm -R /var/log/eagle
+rm -Rf /etc/eagle
+# rm -Rf /var/log/eagle
 
 userdel -r eagle

@@ -6,7 +6,7 @@ set ( CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories ("${PROJECT_SOURCE_DIR}")
 include_directories ("${PROJECT_SOURCE_DIR}/../../inc/shared")
 include_directories ("${PROJECT_SOURCE_DIR}/../pwrapi_adaptor")
-
+include_directories ("${PROJECT_SOURCE_DIR}/../pwrapi_adaptor/pwrapi")
 # Load source file
 set(SCHED_SRC ${PROJECT_SOURCE_DIR}/freq_service.c)
 

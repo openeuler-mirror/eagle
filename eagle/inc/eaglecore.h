@@ -17,6 +17,6 @@
 
 int InitEagleSystem(void);
 int StartEagleSystem(void);
-void StopEagleSystem(void);
+void StopEagleSystem(int mode);
 void CheckAndUpdatePolicy(void);
 #endif

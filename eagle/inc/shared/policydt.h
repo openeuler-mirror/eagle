@@ -34,6 +34,7 @@ typedef struct SchedServicePcy {
     int wattThreshold;     // [0,100]
     int wattInterval;      // [0, 3600000] ms
     int wattMask;
+    int wattFirstDomain;
     int sgEnable;       //  smart grid
     int sgGovEnable;
     char wattProcs[MAX_VALUE];

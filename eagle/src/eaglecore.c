@@ -34,9 +34,27 @@ static void PwrapiLogCallback(int level, const char *fmt, va_list vl)
     Logger(level, MD_NM_PWRAPI, message);
 }
 
+static void EventCallback(const PWR_COM_EventInfo *eventInfo)
+{
+    if (!eventInfo) {
+        return;
+    }
+    Logger(INFO, MD_NM_ECORE, "Get event from powerapi. type:%d.", eventInfo->eventType);
+    switch (eventInfo->eventType) {
+        case PWR_COM_EVTTYPE_AUTH_RELEASED:
+            // As the config auth has been released, eagle couldn't restore the system configuration.
+            StopEagleSystem(EXIT_MODE_KEEP_STATUS);
+            break;
+        case PWR_COM_EVTTYPE_CRED_FAILED:
+        default:
+            break;
+    }
+}
+
 static int RegisterToPapis(void)
 {
     PwrapiSetLogCallback(PwrapiLogCallback);
+    PwrapiSetEventCallback(EventCallback);
     int ret = PwrapiRegister();
     if (ret != SUCCESS) {
         return ret;
@@ -106,9 +124,9 @@ int StartEagleSystem(void)
     return SUCCESS;
 }
 
-void StopEagleSystem(void)
+void StopEagleSystem(int mode)
 {
-    StopServices();
+    StopServices(mode);
     if (RestoreOriginalSettings() != SUCCESS) {
         Logger(ERROR, MD_NM_ECORE, "RestoreOriginalSettings failed");
     }
