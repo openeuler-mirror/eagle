@@ -41,9 +41,7 @@ enum CnfItemType {
     E_CFG_IT_BKP,
     E_CFG_IT_PFX,
     E_CFG_IT_PCY,
-    E_CFG_IT_CPU,
-    E_CFG_IT_DSK,
-    E_CFG_IT_NET,
+    E_CFG_IT_PPTH,
     E_CFG_IT_CFG_UPD_INTVL,
     E_CFG_IT_PCY_UPD_INTVL
 };
@@ -64,9 +62,7 @@ typedef struct LogCfg {
 
 typedef struct PolicyCfg {
     char policyFile[MAX_FULL_NAME];
-    char cpuPlugin[MAX_FILE_NAME];
-    char diskPlugin[MAX_FILE_NAME];
-    char nicPlugin[MAX_FILE_NAME];
+    char pluginPath[MAX_PATH_NAME];
 } PolicyCfg;
 
 // ServCfg

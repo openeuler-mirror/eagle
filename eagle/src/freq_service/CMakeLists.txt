@@ -21,8 +21,8 @@ if(BUILD_LLT)
 endif(BUILD_LLT)
 
 # set installation path
-set ( CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Install path prefix" FORCE)
-install (TARGETS ${PG_NAME} DESTINATION lib64)
+# set ( CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Install path prefix" FORCE)
+install (TARGETS ${PG_NAME} DESTINATION /etc/eagle/plugin)
 
 # Release compile mode
 #set(CMAKE_BUILD_TYPE "Release")

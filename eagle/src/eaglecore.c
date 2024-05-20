@@ -136,6 +136,11 @@ void StopEagleSystem(int mode)
 
 void CheckAndUpdatePolicy(void)
 {
-    UpdatePolicy();
-    // todo
+    if(UpdatePolicy()) {
+        UpdateServices();
+    }
+}
+void TriggerTimer(void)
+{
+    TriggerTimerForServices();
 }

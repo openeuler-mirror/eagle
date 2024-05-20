@@ -22,6 +22,7 @@
 #include <numa.h>
 #include "log.h"
 #include "utils.h"
+#include "config.h"
 
 // Policy section name
 #define PCY_SEC_PCY "policy"
@@ -163,6 +164,33 @@ static inline int StrToIntWithRangeChk(const char *str, int *rt, int min, int ma
     return SUCCESS;
 }
 
+static char *GetPluginLibMd5Str(int enable, char *md5, const char *lib)
+{
+    bzero(md5, MD5_LEN);
+    if (!enable) {  // keep the md5 to 0 if the service is disabled
+        return md5;
+    }
+    char file[MAX_FILE_NAME] = {0};
+    if (GetFullFileName(file, GetPolicyCfg()->pluginPath, lib) == SUCCESS) {
+        GetMd5(file, md5);
+    }
+    return md5;
+}
+
+static int GetPluginLibMd5(PcyBase *pcy)
+{
+    bzero(pcy->md5, MD5_LEN);
+    if (!pcy->enable) {  // keep the md5 to 0 if the service is disabled
+        return SUCCESS;
+    }
+    char file[MAX_FILE_NAME] = {0};
+    int ret = GetFullFileName(file, GetPolicyCfg()->pluginPath, pcy->lib);
+    if (ret != SUCCESS) {
+        return ret;
+    }
+    return GetMd5(file, pcy->md5);
+}
+
 static int FullfillPcyItem(Policy *pcy, const char *name, const char *value)
 {
     if (strcmp(name, PCY_ITEM_PCY_NAME) == 0) {
@@ -184,7 +212,7 @@ static int FullfillSchedItem(Policy *pcy, const char *name, const char *value)
     }
     if (strcmp(name, PCY_ITEM_SCHED_LIB) == 0) {
         strncpy(pcy->schedPcy.base.lib, value, sizeof(pcy->schedPcy.base.lib) - 1);
-        return SUCCESS;
+        return GetPluginLibMd5((PcyBase*)&pcy->schedPcy.base);
     }
     if (strcmp(name, PCY_ITEM_SCHED_WATT_ENABLE) == 0) {
         return StrStateToIntState(value, &pcy->schedPcy.wattEnable);
@@ -199,7 +227,7 @@ static int FullfillSchedItem(Policy *pcy, const char *name, const char *value)
         return StrToIntWithRangeChk(value, &pcy->schedPcy.wattMask, 0, g_numaNum);
     }
     if (strcmp(name, PCP_ITEM_SCHED_WATT_FD) == 0) {
-        StrToIntWithRangeChk(value, &pcy->schedPcy.wattFirstDomain, 0, g_cpuNum);
+        return StrToIntWithRangeChk(value, &pcy->schedPcy.wattFirstDomain, 0, g_cpuNum);
     }
     if (strcmp(name, PCP_ITEM_SCHED_WATT_PROCS) == 0) {
         strncpy(pcy->schedPcy.wattProcs, value, sizeof(pcy->schedPcy.wattProcs) - 1);
@@ -232,7 +260,7 @@ static int FullfillFreqItem(Policy *pcy, const char *name, const char *value)
     }
     if (strcmp(name, PCY_ITEM_FREQ_LIB) == 0) {
         strncpy(pcy->freqPcy.base.lib, value, sizeof(pcy->freqPcy.base.lib) - 1);
-        return SUCCESS;
+        return GetPluginLibMd5((PcyBase*)&pcy->freqPcy.base);
     }
     if (strcmp(name, PCY_ITEM_FREQ_GOV) == 0) {
         return StrCpyWithFreqGovCheck(pcy->freqPcy.freqGov, value, sizeof(pcy->freqPcy.freqGov));
@@ -254,7 +282,7 @@ static int FullfillIdleItem(Policy *pcy, const char *name, const char *value)
     }
     if (strcmp(name, PCY_ITEM_IDLE_LIB) == 0) {
         strncpy(pcy->idlePcy.base.lib, value, sizeof(pcy->idlePcy.base.lib) - 1);
-        return SUCCESS;
+        return GetPluginLibMd5((PcyBase*)&pcy->idlePcy.base);
     }
     if (strcmp(name, PCY_ITEM_IDLE_GOV) == 0) {
         if (!IsValueInList(value, g_idleGov, sizeof(g_idleGov) / sizeof(g_idleGov[0]))) {
@@ -275,7 +303,7 @@ static int FullfillPcapItem(Policy *pcy, const char *name, const char *value)
     }
     if (strcmp(name, PCY_ITEM_PCAP_LIB) == 0) {
         strncpy(pcy->pcapPcy.base.lib, value, sizeof(pcy->pcapPcy.base.lib) - 1);
-        return SUCCESS;
+        return GetPluginLibMd5((PcyBase*)&pcy->pcapPcy.base);
     }
     if (strcmp(name, PCY_ITEM_PCAP_ENPCAP) == 0) {
         return StrStateToIntState(value, &pcy->pcapPcy.enablePcap);
@@ -294,7 +322,7 @@ static int FullfillMpcItem(Policy *pcy, const char *name, const char *value)
     }
     if (strcmp(name, PCY_ITEM_MPC_LIB) == 0) {
         strncpy(pcy->mpcPcy.base.lib, value, sizeof(pcy->mpcPcy.base.lib) - 1);
-        return SUCCESS;
+        return GetPluginLibMd5((PcyBase*)&pcy->mpcPcy.base);
     }
     if (strcmp(name, PCY_ITEM_MPC_ENMPC) == 0) {
         return StrStateToIntState(value, &pcy->mpcPcy.enableMpc);
@@ -388,8 +416,70 @@ static int ParseFile(const char *filePath, Policy *pcy)
     return ret;
 }
 
+static int SchedItemsModified(const Policy *oldPcy, const Policy *newPcy)
+{
+    const SchedServicePcy *od = &oldPcy->schedPcy;
+    const SchedServicePcy *nw = &newPcy->schedPcy;
+    if (od->wattEnable != nw->wattEnable ||
+        od->wattThreshold != nw->wattThreshold ||
+        od->wattInterval != nw->wattInterval ||
+        od->wattMask != nw->wattMask ||
+        od->wattFirstDomain != nw->wattFirstDomain ||
+        od->sgEnable != nw->sgEnable ||
+        od->sgGovEnable != nw->sgGovEnable ||
+        strcmp(od->wattProcs, nw->wattProcs) != 0 ||
+        strcmp(od->sgVipProcs, nw->sgVipProcs) != 0 ||
+        strcmp(od->sgVipGov, nw->sgVipGov) != 0 ||
+        strcmp(od->sgLev1Gov, nw->sgLev1Gov) != 0) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+static int FreqItemsModified(const Policy *oldPcy, const Policy *newPcy)
+{
+    const FreqServicePcy *od = &oldPcy->freqPcy;
+    const FreqServicePcy *nw = &newPcy->freqPcy;
+    if (strcmp(od->freqGov, nw->freqGov) != 0 ||
+        od->perfLossRate != nw->perfLossRate ||
+        od->samplingRate != nw->samplingRate) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+static int IdleItemsModified(const Policy *oldPcy, const Policy *newPcy)
+{
+    const IdleServicePcy *od = &oldPcy->idlePcy;
+    const IdleServicePcy *nw = &newPcy->idlePcy;
+    if (strcmp(od->idleGov, nw->idleGov) != 0) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+static int PcapItemsModified(const Policy *oldPcy, const Policy *newPcy)
+{
+    const PcapServicePcy *od = &oldPcy->pcapPcy;
+    const PcapServicePcy *nw = &newPcy->pcapPcy;
+    if (od->enablePcap != nw->enablePcap) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+static int MpcItemsModified(const Policy *oldPcy, const Policy *newPcy)
+{
+    const MpcServicePcy *od = &oldPcy->mpcPcy;
+    const MpcServicePcy *nw = &newPcy->mpcPcy;
+    if (od->enableMpc != nw->enableMpc) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
 /* *********************************************public****************************** */
-int InitPolicy(const char policyFilePath[], Policy *pcy)
+int CreatePolicy(const char policyFilePath[], Policy *pcy)
 {
     if (!pcy) {
         return ERR_NULL_POINTER;
@@ -407,5 +497,34 @@ int InitPolicy(const char policyFilePath[], Policy *pcy)
         bzero(pcy, sizeof(Policy));
         return ret;
     }
+    return SUCCESS;
+}
+
+int PluginLibModified(const Policy *pcy)
+{
+    if (!pcy) {
+        return ERR_NULL_POINTER;
+    }
+    char md5[MD5_LEN] = {0};
+    if (strcmp(pcy->schedPcy.base.md5, GetPluginLibMd5Str(pcy->schedPcy.base.enable, md5, pcy->schedPcy.base.lib)) != 0 ||
+        strcmp(pcy->freqPcy.base.md5, GetPluginLibMd5Str(pcy->freqPcy.base.enable, md5, pcy->freqPcy.base.lib)) != 0 ||
+        strcmp(pcy->idlePcy.base.md5, GetPluginLibMd5Str(pcy->idlePcy.base.enable, md5, pcy->idlePcy.base.lib)) != 0 ||
+        strcmp(pcy->pcapPcy.base.md5, GetPluginLibMd5Str(pcy->pcapPcy.base.enable, md5, pcy->pcapPcy.base.lib)) != 0 ||
+        strcmp(pcy->mpcPcy.base.md5, GetPluginLibMd5Str(pcy->mpcPcy.base.enable, md5, pcy->mpcPcy.base.lib)) != 0) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+int UpdateModifiedFlag(const Policy *oldPcy, Policy *newPcy)
+{
+    if (!oldPcy || !newPcy) {
+        return ERR_NULL_POINTER;
+    }
+    newPcy->schedPcy.base.modified = SchedItemsModified(oldPcy, newPcy);
+    newPcy->freqPcy.base.modified = FreqItemsModified(oldPcy, newPcy);
+    newPcy->idlePcy.base.modified = IdleItemsModified(oldPcy, newPcy);
+    newPcy->pcapPcy.base.modified = PcapItemsModified(oldPcy, newPcy);
+    newPcy->mpcPcy.base.modified = MpcItemsModified(oldPcy, newPcy);
     return SUCCESS;
 }

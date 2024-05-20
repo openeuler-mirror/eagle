@@ -50,9 +50,7 @@ static struct CnfItem CnfItemMap[CNF_ITEM_CNT] = {
     {E_CFG_IT_BKP, CFG_IT_BKP},
     {E_CFG_IT_PFX, CFG_IT_PFX},
     {E_CFG_IT_PCY, CFG_IT_PCY},
-    {E_CFG_IT_CPU, CFG_IT_CPU},
-    {E_CFG_IT_DSK, CFG_IT_DSK},
-    {E_CFG_IT_NET, CFG_IT_NET},
+    {E_CFG_IT_PPTH, CFG_IT_PPTH},
     {E_CFG_IT_CFG_UPD_INTVL, CFG_IT_CFG_UPD_INTVL},
     {E_CFG_IT_PCY_UPD_INTVL, CFG_IT_PCY_UPD_INTVL}
 };
@@ -95,6 +93,14 @@ static int UpdatePolicyCfg(enum CnfItemType type, char *value)
                 return ERR_INVALIDE_PARAM;
             }
             strncpy(g_policyCfg.policyFile, value, sizeof(g_policyCfg.policyFile) - 1);
+            break;
+        case E_CFG_IT_PPTH:
+            ret = NormalizeAndVerifyFilepath(value, realpathRes);
+            if (ret != SUCCESS) {
+                Logger(ERROR, MD_NM_CFG, "plugin_path in config is invalid. ret:%d", ret);
+                return ERR_INVALIDE_PARAM;
+            }
+            strncpy(g_policyCfg.pluginPath, value, sizeof(g_policyCfg.pluginPath) - 1);
             break;
         default:
             break;
@@ -214,9 +220,7 @@ int UpdateConfig(char *key, char *value)
             UpdateLogCfg(type, value);
             break;
         case E_CFG_IT_PCY:
-        case E_CFG_IT_CPU:
-        case E_CFG_IT_DSK:
-        case E_CFG_IT_NET:
+        case E_CFG_IT_PPTH:
             UpdatePolicyCfg(type, value);
             break;
         case E_CFG_IT_CFG_UPD_INTVL:

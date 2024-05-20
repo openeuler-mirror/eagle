@@ -17,25 +17,50 @@
 #include <string.h>
 #include "log.h"
 #include "config.h"
+#include "utils.h"
 
 static struct Policy g_curPolicy;
 static struct Policy g_lastPolicy;
+static char pcyFileMd5[MD5_LEN] = {0};
 
 int InitPolicyMgr(void)
 {
     bzero(&g_curPolicy, sizeof(Policy));
     bzero(&g_lastPolicy, sizeof(Policy));
-    int ret = InitPolicy(GetPolicyCfg()->policyFile, &g_curPolicy);
+    int ret = CreatePolicy(GetPolicyCfg()->policyFile, &g_curPolicy);
     if (ret != SUCCESS) {
-        Logger(ERROR, MD_NM_PCYMGR, "InitPolicy failed. ret: %d", ret);
+        Logger(ERROR, MD_NM_PCYMGR, "CreatePolicy failed. ret: %d", ret);
     }
     memcpy(&g_lastPolicy, &g_curPolicy, sizeof(Policy));
+    GetMd5(GetPolicyCfg()->policyFile, pcyFileMd5);
+    if (strlen(pcyFileMd5) == 0) {
+        Logger(ERROR, MD_NM_PCYMGR, "Get initial md5 of policy file failed.");
+        return FAILED;
+    }
     return SUCCESS;
 }
 
+// return TRUE if the policy file or the any plugin lib modified.
 int UpdatePolicy(void)
 {
-    // todo
+    char curMd5[MD5_LEN] = {0};
+    GetMd5(GetPolicyCfg()->policyFile, curMd5);
+    if (strlen(curMd5) == 0 || (strcmp(curMd5, pcyFileMd5) == 0 && !PluginLibModified(&g_curPolicy))) {
+        return FALSE;
+    }
+
+    // Policy file or plugin lib changed or modified
+    struct Policy pcy = {0};
+    int ret = CreatePolicy(GetPolicyCfg()->policyFile, &pcy);
+    if (ret != SUCCESS) {
+        Logger(ERROR, MD_NM_PCYMGR, "Parse policy file failed. path:%s ret: %d",
+            GetPolicyCfg()->policyFile, ret);
+        return FALSE;
+    }
+    (void)UpdateModifiedFlag(&g_curPolicy, &pcy);
+    memcpy(&g_lastPolicy, &g_curPolicy, sizeof(Policy));
+    memcpy(&g_curPolicy, &pcy, sizeof(Policy));
+    return TRUE;
 }
 
 Policy *GetCurPolicy(void)
