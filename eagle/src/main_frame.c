@@ -46,13 +46,11 @@ static int BaseInit(void)
     if (ret != SUCCESS) {
         return ret;
     }
-    // todo 其他必要的初始化
     return SUCCESS;
 }
 
 static void ClearEnv(void)
 {
-    // todo：必要的环境清理动作
     ClearLogger();
 }
 

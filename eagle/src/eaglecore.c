@@ -100,6 +100,7 @@ int InitEagleSystem(void)
         Logger(ERROR, MD_NM_ECORE, "InitServiceMgr failed. ret:%d", ret);
         return ret;
     }
+    Logger(INFO, MD_NM_ECORE, "InitEagleSystem succeed.");
     return SUCCESS;
 }
 
@@ -121,6 +122,7 @@ int StartEagleSystem(void)
         Logger(ERROR, MD_NM_ECORE, "StartServices failed. ret:%d", ret);
         return ret;
     }
+    Logger(INFO, MD_NM_ECORE, "StartEagleSystem succeed.");
     return SUCCESS;
 }
 
