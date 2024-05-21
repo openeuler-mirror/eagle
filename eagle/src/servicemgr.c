@@ -105,6 +105,7 @@ static inline void OffloadService(int idx)
     }
     // services[idx].status = ST_OFFLOAD;
     bzero(&services[idx], sizeof(services[idx]));
+    Logger(INFO, MD_NM_SVRMGR, "Service[%d] Offloaded.", idx);
 }
 
 static int LoadService(int idx)
@@ -129,15 +130,18 @@ static int LoadService(int idx)
     LoadFunction(services[idx].uninit, SrvFpUninit, "SRV_Uninit")
     if (!successful) {
         OffloadService(idx);
+        Logger(ERROR, MD_NM_SVRMGR, "Load service[%d] function failed.", idx);
         return ERR_DL_OPEN_FAILED;
     }
     services[idx].setLogCallback(SrvLogCallback, srvPcyMap[idx].curPcy->lib);
     int ret = services[idx].init();
     if (ret != SUCCESS) {
         OffloadService(idx);
+        Logger(ERROR, MD_NM_SVRMGR, "Load service[%d] failed.", idx);
         return ret;
     }
     services[idx].status = ST_LOADED;
+    Logger(INFO, MD_NM_SVRMGR, "Service[%d] loaded.", idx);
     return SUCCESS;
 }
 
@@ -146,6 +150,7 @@ static inline void StopService(int idx, int mode)
     if (services[idx].stop) {
         services[idx].stop(mode);
         services[idx].status = ST_LOADED;
+        Logger(INFO, MD_NM_SVRMGR, "Service[%d] stopped. mode:%d", idx, mode);
     }
 }
 
@@ -157,6 +162,9 @@ static inline int StartService(int idx)
     int ret = services[idx].start(srvPcyMap[idx].curPcy);
     if (ret == SUCCESS) {
         services[idx].status = ST_RUNNING;
+        Logger(INFO, MD_NM_SVRMGR, "Service[%d] started.", idx);
+    } else {
+        Logger(ERROR, MD_NM_SVRMGR, "Start service[%d] failed.", idx);
     }
     return ret;
 }
@@ -198,6 +206,7 @@ int StartServices(void)
 
 void UpdateServices(void)
 {
+    Logger(INFO, MD_NM_SVRMGR, "Starting updating services.");
     for (int i = 0; i < MAX_SERVICE_NUM; i++) {
         if (!srvPcyMap[i].curPcy) {
             continue;
@@ -232,6 +241,7 @@ void UpdateServices(void)
             services[i].update(srvPcyMap[i].curPcy);
         }
     }
+    Logger(INFO, MD_NM_SVRMGR, "Completed Updating services.");
 }
 
 void TriggerTimerForServices(void)

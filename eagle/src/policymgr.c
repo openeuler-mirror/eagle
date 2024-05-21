@@ -49,7 +49,7 @@ int UpdatePolicy(void)
         return FALSE;
     }
 
-    // Policy file or plugin lib changed or modified
+    Logger(INFO, MD_NM_PCYMGR, "Policy file or plugin libs modified. path: %s", GetPolicyCfg()->policyFile);
     struct Policy pcy = {0};
     int ret = CreatePolicy(GetPolicyCfg()->policyFile, &pcy);
     if (ret != SUCCESS) {

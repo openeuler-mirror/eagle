@@ -165,6 +165,7 @@ int InitLogger(void)
     if (OpenLogFile() == NULL) {
         return ERR_COMMON;
     }
+    Logger(INFO, MD_NM_LOG, "InitLogger succeed.");
     return SUCCESS;
 }
 

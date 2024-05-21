@@ -331,6 +331,7 @@ int InitConfig(void)
         Logger(ERROR, MD_NM_CFG, "config file error. ret:%d", ret);
         return ret;
     }
+    Logger(INFO, MD_NM_CFG, "Load config succeed.");
     return SUCCESS;
 }
 
@@ -340,9 +341,9 @@ int CheckAndUpdateConfig(void)
     GetMd5(g_configPath, curMd5);
     if (strlen(curMd5) == 0 || strcmp(curMd5, g_lastMd5) == 0) {
         return SUCCESS;
-    } else {
-        strncpy(g_lastMd5, curMd5, sizeof(g_lastMd5));
     }
+    Logger(INFO, MD_NM_CFG, "Config file has been modified. path: %s", g_configPath);
+    strncpy(g_lastMd5, curMd5, sizeof(g_lastMd5));
 
     char realpathRes[MAX_FULL_NAME] = {0};
     int ret = NormalizeAndVerifyFilepath(g_configPath, realpathRes);
