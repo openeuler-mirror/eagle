@@ -28,6 +28,7 @@ SRV_API int SRV_SetLogCallback(void(LogCallback)(int level, const char *, const 
 SRV_API int SRV_Init(void);
 SRV_API int SRV_Start(void* pcy);
 SRV_API int SRV_Update(void* pcy);
+SRV_API int SRV_Looper(void);
 SRV_API int SRV_Stop(int mode);
 SRV_API int SRV_Uninit(void);
 

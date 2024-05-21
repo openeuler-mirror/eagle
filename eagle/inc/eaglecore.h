@@ -19,4 +19,5 @@ int InitEagleSystem(void);
 int StartEagleSystem(void);
 void StopEagleSystem(int mode);
 void CheckAndUpdatePolicy(void);
+void TriggerTimer(void);
 #endif

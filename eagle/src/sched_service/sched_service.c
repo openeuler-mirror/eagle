@@ -73,6 +73,7 @@ int SRV_SetLogCallback(void(LogCallback)(int, const char *, const char *, va_lis
 
 int SRV_Init(void)
 {
+    SrvLog(INFO, "sched_service initialized.");
     return SUCCESS;
 }
 
@@ -92,6 +93,12 @@ int SRV_Update(void* pcy)
         return ERR_NULL_POINTER;
     }
     return ParsePolicy((SchedServicePcy*)pcy);
+}
+
+int SRV_Looper(void)
+{
+    // todo
+    return SUCCESS;
 }
 
 int SRV_Stop(int mode)

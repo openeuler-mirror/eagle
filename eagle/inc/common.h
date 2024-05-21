@@ -45,9 +45,8 @@
 #define CFG_IT_PFX "log_pfx"
 // policy
 #define CFG_IT_PCY "policy"
-#define CFG_IT_CPU "cpu"
-#define CFG_IT_DSK "disk"
-#define CFG_IT_NET "net"
+#define CFG_IT_PPTH "plugin_path"
+
 // timer
 #define CFG_IT_CFG_UPD_INTVL "config_update_interval"
 #define CFG_IT_PCY_UPD_INTVL "policy_update_interval"

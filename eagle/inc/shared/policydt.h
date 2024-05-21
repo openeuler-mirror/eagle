@@ -26,6 +26,8 @@ enum PcyState {
 typedef struct PcyBase {
     int enable;
     char lib[MAX_KEY_LEN];
+    char md5[MD5_LEN];  // md5 of the lib file
+    int modified;   // Whether Policy Items are changed other than PcyBase
 } PcyBase;
 
 typedef struct SchedServicePcy {

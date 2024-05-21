@@ -219,3 +219,16 @@ int NormalizeAndVerifyFilepath(const char *filename, char *realpathRes)
     free(path);
     return SUCCESS;
 }
+
+int GetFullFileName(char *file, const char *path, const char *name)
+{
+    if (!file || !path || !name) {
+        return ERR_NULL_POINTER;
+    }
+    strncpy(file, path, MAX_FILE_NAME - 1);
+    if (file[strlen(file) - 1] != PATH_SEP_CHAR) {
+        strncat(file, PATH_SEP_STR, MAX_FILE_NAME - strlen(file) - 1);
+    }
+    strncat(file, name, MAX_FILE_NAME - strlen(file) - 1);
+    return SUCCESS;
+}

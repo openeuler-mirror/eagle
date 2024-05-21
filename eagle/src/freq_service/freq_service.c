@@ -118,6 +118,12 @@ int SRV_Update(void* pcy)
     return ParsePolicy((FreqServicePcy*)pcy);
 }
 
+int SRV_Looper(void)
+{
+    // todo
+    return SUCCESS;
+}
+
 int SRV_Stop(int mode)
 {
     // todo

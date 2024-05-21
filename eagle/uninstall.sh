@@ -9,8 +9,8 @@ if [ -f "./build/install_manifest.txt" ];then
     xargs rm < install_manifest.txt
 else
     rm /usr/lib64/libpwrapi_adaptor.so
-    rm /usr/lib64/libsched_service.so
-    rm /usr/lib64/libfreq_service.so
+    rm /etc/eagle/plugin/libsched_service.so
+    rm /etc/eagle/plugin/libfreq_service.so
     rm /usr/sbin/eagle
     rm /usr/lib/systemd/system/eagle.service
 fi

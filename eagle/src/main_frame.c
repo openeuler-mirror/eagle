@@ -107,6 +107,7 @@ int main(int argc, const char *args[])
         }
         if (count % (GetTimerCfg()->policyUpdateInterval / MAIN_THREAD_LOOP_INTERVAL) == 0) {
             CheckAndUpdatePolicy();
+            TriggerTimer();
         }
     }
     StopEagleSystem(EXIT_MODE_RESTORE);

@@ -18,8 +18,7 @@
 #include "common.h"
 #include "policydt.h"
 
-
-
-int InitPolicy(const char policyFilePath[], Policy *pcy);
-
+int CreatePolicy(const char policyFilePath[], Policy *pcy);
+int PluginLibModified(const Policy *pcy);
+int UpdateModifiedFlag(const Policy *oldPcy, Policy *newPcy);
 #endif
