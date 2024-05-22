@@ -17,7 +17,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "public.h"
-#include "powerapi.h"
+#include "pwrapic/powerapi.h"
 
 #define ALL_PROCS_TAG "all"
 
@@ -106,6 +106,14 @@ int PwrapiCpuSetFreqGovAttribute(const char *attrName, const char *attrValue)
     return SUCCESS;
 }
 
+int PwrProcSetWattFirstDomain(int cpuId)
+{
+    if (PWR_PROC_SetWattFirstDomain(cpuId) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+
 int PwrProcSetWattState(int state)
 {
     if (PWR_PROC_SetWattState(state) != PWR_SUCCESS) {
@@ -189,6 +197,21 @@ int PwrapiProcSetSmartGridGov(const SchedServicePcy *schedPcy)
     strncpy(sgGov.sgLevel0Gov, schedPcy->sgVipGov, sizeof(sgGov.sgLevel0Gov));
     strncpy(sgGov.sgLevel1Gov, schedPcy->sgLev1Gov, sizeof(sgGov.sgLevel1Gov));
     if (PWR_PROC_SetSmartGridGov(&sgGov) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+
+int PwrapiProcSetServiceState(PWR_PROC_ServiceState *sState)
+{
+    if (PWR_PROC_SetServiceState(sState) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+int PwrapiProcGetServiceState(PWR_PROC_ServiceStatus *sStatus)
+{
+    if (PWR_PROC_GetServiceState(sStatus) != PWR_SUCCESS) {
         return ERR_INVOKE_PWRAPI_FAILED;
     }
     return SUCCESS;

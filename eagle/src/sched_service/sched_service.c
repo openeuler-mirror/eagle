@@ -20,6 +20,8 @@
 #include "policydt.h"
 #include "pwrapiadpt.h"
 
+static SchedServicePcy *g_schedPcy = NULL;
+
 static void DefaultLogCallback(int level, const char *usInfo, const char *fmt, va_list vl)
 {
     printf(fmt);
@@ -42,6 +44,8 @@ static inline void SrvLog(int level, const char *fmt, ...)
 static int ParsePolicy(const SchedServicePcy *schedPcy)
 {
     int ret = SUCCESS;
+
+    (void)PwrProcSetWattFirstDomain(schedPcy->wattFirstDomain);
     (void)PwrProcSetWattState(schedPcy->wattEnable);
     if (schedPcy->wattEnable) {
         (void)PwrapiProcSetWattAttr(schedPcy);
@@ -83,6 +87,7 @@ int SRV_Start(void* pcy)
         SrvLog(ERROR, "SRV_Start, pcy is null");
         return ERR_NULL_POINTER;
     }
+    g_schedPcy = (SchedServicePcy*)pcy;
     return ParsePolicy((SchedServicePcy*)pcy);
 }
 
@@ -92,12 +97,20 @@ int SRV_Update(void* pcy)
         SrvLog(ERROR, "SRV_Update, pcy is null");
         return ERR_NULL_POINTER;
     }
+    g_schedPcy = (SchedServicePcy*)pcy;
     return ParsePolicy((SchedServicePcy*)pcy);
 }
 
 int SRV_Looper(void)
 {
-    // todo
+    // Keep adding task to the watt task queue.
+    if (g_schedPcy->wattEnable) {
+        (void)PwrapiProcAddWattProcs(g_schedPcy->wattProcs);
+    }
+
+    if (g_schedPcy->sgEnable) {
+        (void)PwrapiProcAddSmartGridProcs(g_schedPcy->sgVipProcs);
+    }
     return SUCCESS;
 }
 
@@ -109,5 +122,6 @@ int SRV_Stop(int mode)
 
 int SRV_Uninit(void)
 {
+    g_schedPcy = NULL;
     return SUCCESS;
 }

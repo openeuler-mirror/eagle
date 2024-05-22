@@ -1,7 +1,0 @@
-The pwrapi_adaptor module depends on powerapi development kits.
-Before building eagle, you should copy the powerapi development kits to this directory, including:
-
-libpwrapi.so
-powerapi.h
-pwrdata.h
-pwrerr.h

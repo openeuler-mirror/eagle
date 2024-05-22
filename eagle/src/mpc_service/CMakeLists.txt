@@ -1,18 +1,18 @@
 cmake_minimum_required (VERSION 3.16)
-project (pwrapi_adaptor C)
+project (mpc_service C)
 set ( CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Add head directory
 include_directories ("${PROJECT_SOURCE_DIR}")
 include_directories ("${PROJECT_SOURCE_DIR}/../../inc/shared")
-
+include_directories ("${PROJECT_SOURCE_DIR}/../pwrapi_adaptor")
 
 # Load source file
-set(SCHED_SRC ${PROJECT_SOURCE_DIR}/pwrapiadpt.c)
+set(MPC_SRC ${PROJECT_SOURCE_DIR}/mpc_service.c)
 
 # Set compile policy
 set (PG_NAME ${PROJECT_NAME})
-add_library(${PG_NAME} SHARED ${SCHED_SRC})
+add_library(${PG_NAME} SHARED ${MPC_SRC})
 set_target_properties(${PG_NAME} PROPERTIES LINKER_LANGUAGE C)
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -21,8 +21,8 @@ if(BUILD_LLT)
 endif(BUILD_LLT)
 
 # set installation path
-set ( CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Install path prefix" FORCE)
-install (TARGETS ${PG_NAME} DESTINATION lib64)
+# set ( CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Install path prefix" FORCE)
+install (TARGETS ${PG_NAME} DESTINATION /etc/eagle/plugin)
 
 # Release compile mode
 #set(CMAKE_BUILD_TYPE "Release")

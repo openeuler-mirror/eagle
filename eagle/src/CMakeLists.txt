@@ -12,7 +12,6 @@ include_directories (
 
 # Add library directory
 link_directories (
-    "${PROJECT_SOURCE_DIR}/pwrapi_adaptor/pwrapi"
     "${CMAKE_CURRENT_BINARY_DIR}/pwrapi_adaptor"
 ) 
 
@@ -29,6 +28,8 @@ set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Set installaltion path
 #set ( CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}")
 set ( CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Install path prefix" FORCE)
+
+set(CMAKE_SKIP_RPATH TRUE)
 install (TARGETS ${PG_NAME} DESTINATION sbin)
 
 # Install default config files
