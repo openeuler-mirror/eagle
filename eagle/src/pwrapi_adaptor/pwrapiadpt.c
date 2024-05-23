@@ -106,6 +106,22 @@ int PwrapiCpuSetFreqGovAttribute(const char *attrName, const char *attrValue)
     return SUCCESS;
 }
 
+int PwrapiCpuGetIdleGovernor(char gov[], uint32_t size)
+{
+    if (PWR_CPU_GetIdleGovernor(gov, size) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+
+int PwrapiCpuSetIdleGovernor(const char gov[])
+{
+    if (PWR_CPU_SetIdleGovernor(gov) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+
 int PwrProcSetWattFirstDomain(int cpuId)
 {
     if (PWR_PROC_SetWattFirstDomain(cpuId) != PWR_SUCCESS) {

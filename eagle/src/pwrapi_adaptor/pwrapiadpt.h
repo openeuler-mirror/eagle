@@ -31,6 +31,8 @@ int PwrapiRequestControlAuth(void);
 int PwrapiReleaseControlAuth(void);
 int PwrapiCpuSetFreqGovernor(const char gov[]);
 int PwrapiCpuSetFreqGovAttribute(const char *attrName, const char *attrValue);
+int PwrapiCpuGetIdleGovernor(char gov[], uint32_t size);
+int PwrapiCpuSetIdleGovernor(const char gov[]);
 int PwrProcSetWattFirstDomain(int cpuId);
 int PwrProcSetWattState(int state);
 int PwrapiProcSetWattAttr(const SchedServicePcy *schedPcy);
