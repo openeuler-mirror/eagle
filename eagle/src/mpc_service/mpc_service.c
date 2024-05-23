@@ -51,7 +51,7 @@ static int SetMpcState(const int state)
     PWR_PROC_ServiceStatus mpc_status = {0};
     mpc_status.name = PWR_PROC_SERVICE_MPCTOOL;
 
-    int ret = PwrapiProcGetServiceState(&mpc_status);
+    int ret = PwrProcGetServiceState(&mpc_status);
     if (ret != SUCCESS) {
         SrvLog(ERROR, "Failed to get mpc service status, ret is %d.", ret);
         return ERR_INVOKE_PWRAPI_FAILED;
@@ -64,7 +64,7 @@ static int SetMpcState(const int state)
         switch (mpc_status.status) {
         case PWR_PROC_SRV_ST_INACTIVE: // only start mpc when mpc is inactive
             mpc_state.state = 1;
-            ret = PwrapiProcSetServiceState(&mpc_state);
+            ret = PwrProcSetServiceState(&mpc_state);
             break;
         default:
             SrvLog(INFO, "mpc service is not inactive , not need to enable.");
@@ -80,7 +80,7 @@ static int SetMpcState(const int state)
             break;
         default:
             mpc_state.state = 0;
-            ret = PwrapiProcSetServiceState(&mpc_state);
+            ret = PwrProcSetServiceState(&mpc_state);
             break;
         }
     }
@@ -122,7 +122,7 @@ int SRV_Start(void* pcy)
 
     PWR_PROC_ServiceStatus mpc_status = {0};
     mpc_status.name = PWR_PROC_SERVICE_MPCTOOL;
-    int ret = PwrapiProcGetServiceState(&mpc_status);
+    int ret = PwrProcGetServiceState(&mpc_status);
     if (ret != SUCCESS) {
         SrvLog(ERROR, "Failed to get mpc service status, ret is %d.", ret);
         return ERR_INVOKE_PWRAPI_FAILED;

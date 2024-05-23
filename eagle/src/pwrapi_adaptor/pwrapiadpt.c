@@ -138,6 +138,14 @@ int PwrProcSetWattFirstDomain(int cpuId)
     return SUCCESS;
 }
 
+int PwrProcGetWattState(int *state)
+{
+    if (PWR_PROC_GetWattState(state) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+
 int PwrProcSetWattState(int state)
 {
     if (PWR_PROC_SetWattState(state) != PWR_SUCCESS) {
@@ -146,7 +154,22 @@ int PwrProcSetWattState(int state)
     return SUCCESS;
 }
 
-int PwrapiProcSetWattAttr(const SchedServicePcy *schedPcy)
+int PwrProcGetWattAttrs(SchedServicePcy *schedPcy)
+{
+    if (!schedPcy) {
+        return ERR_NULL_POINTER;
+    }
+    PWR_PROC_WattAttrs wattAttrs = {0};
+    if (PWR_PROC_GetWattAttrs(&wattAttrs) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    schedPcy->wattThreshold = wattAttrs.scaleThreshold;
+    schedPcy->wattInterval = wattAttrs.scaleInterval;
+    schedPcy->wattMask = wattAttrs.domainMask;
+    return SUCCESS;
+}
+
+int PwrProcSetWattAttr(const SchedServicePcy *schedPcy)
 {
     if (!schedPcy) {
         return ERR_NULL_POINTER;
@@ -161,7 +184,7 @@ int PwrapiProcSetWattAttr(const SchedServicePcy *schedPcy)
     return SUCCESS;
 }
 
-int PwrapiProcAddWattProcs(const char *keyWords)
+int PwrProcAddWattProcs(const char *keyWords)
 {
     const char *kw = NULL;
     if (keyWords && strcmp(keyWords, ALL_PROCS_TAG) != 0) {
@@ -180,6 +203,14 @@ int PwrapiProcAddWattProcs(const char *keyWords)
     return SUCCESS;
 }
 
+int PwrProcGetSmartGridState(int *state)
+{
+    if (PWR_PROC_GetSmartGridState(state) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+
 int PwrProcSetSmartGridState(int state)
 {
     if (PWR_PROC_SetSmartGridState(state) != PWR_SUCCESS) {
@@ -188,7 +219,7 @@ int PwrProcSetSmartGridState(int state)
     return SUCCESS;
 }
 
-int PwrapiProcAddSmartGridProcs(const char *keyWords)
+int PwrProcAddSmartGridProcs(const char *keyWords)
 {
     const char *kw = NULL;
     if (keyWords && strcmp(keyWords, ALL_PROCS_TAG) != 0) {
@@ -214,7 +245,19 @@ int PwrapiProcAddSmartGridProcs(const char *keyWords)
     return SUCCESS;
 }
 
-int PwrapiProcSetSmartGridGov(const SchedServicePcy *schedPcy)
+int PwrProcGetSmartGridGov(SchedServicePcy *schedPcy)
+{
+    PWR_PROC_SmartGridGov sgGov = {0};
+    if (PWR_PROC_GetSmartGridGov(&sgGov) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    schedPcy->sgGovEnable = sgGov.sgAgentState;
+    strncpy(schedPcy->sgVipGov, sgGov.sgLevel0Gov, sizeof(schedPcy->sgVipGov));
+    strncpy(schedPcy->sgLev1Gov, sgGov.sgLevel1Gov, sizeof(schedPcy->sgLev1Gov));
+    return SUCCESS;
+}
+
+int PwrProcSetSmartGridGov(const SchedServicePcy *schedPcy)
 {
     PWR_PROC_SmartGridGov sgGov = {0};
     sgGov.sgAgentState = schedPcy->sgGovEnable;
@@ -226,14 +269,14 @@ int PwrapiProcSetSmartGridGov(const SchedServicePcy *schedPcy)
     return SUCCESS;
 }
 
-int PwrapiProcSetServiceState(PWR_PROC_ServiceState *sState)
+int PwrProcSetServiceState(PWR_PROC_ServiceState *sState)
 {
     if (PWR_PROC_SetServiceState(sState) != PWR_SUCCESS) {
         return ERR_INVOKE_PWRAPI_FAILED;
     }
     return SUCCESS;
 }
-int PwrapiProcGetServiceState(PWR_PROC_ServiceStatus *sStatus)
+int PwrProcGetServiceState(PWR_PROC_ServiceStatus *sStatus)
 {
     if (PWR_PROC_GetServiceState(sStatus) != PWR_SUCCESS) {
         return ERR_INVOKE_PWRAPI_FAILED;

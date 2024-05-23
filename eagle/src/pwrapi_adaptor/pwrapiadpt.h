@@ -34,15 +34,21 @@ int PwrapiCpuSetFreqGovernor(const char gov[]);
 int PwrapiCpuSetFreqGovAttribute(const char *attrName, const char *attrValue);
 int PwrapiCpuGetIdleGovernor(char gov[], uint32_t size);
 int PwrapiCpuSetIdleGovernor(const char gov[]);
+
+// PROC
 int PwrProcSetWattFirstDomain(int cpuId);
+int PwrProcGetWattState(int *state);
 int PwrProcSetWattState(int state);
-int PwrapiProcSetWattAttr(const SchedServicePcy *schedPcy);
-int PwrapiProcAddWattProcs(const char *keyWords);
+int PwrProcGetWattAttrs(SchedServicePcy *schedPcy);
+int PwrProcSetWattAttr(const SchedServicePcy *schedPcy);
+int PwrProcAddWattProcs(const char *keyWords);
 int PwrProcSetSmartGridState(int state);
-int PwrapiProcAddSmartGridProcs(const char *keyWords);
-int PwrapiProcSetSmartGridGov(const SchedServicePcy *schedPcy);
-int PwrapiProcGetServiceState(PWR_PROC_ServiceStatus *sStatus);
-int PwrapiProcSetServiceState(PWR_PROC_ServiceState *sState);
+int PwrProcGetSmartGridState(int *state);
+int PwrProcAddSmartGridProcs(const char *keyWords);
+int PwrProcGetSmartGridGov(SchedServicePcy *schedPcy);
+int PwrProcSetSmartGridGov(const SchedServicePcy *schedPcy);
+int PwrProcGetServiceState(PWR_PROC_ServiceStatus *sStatus);
+int PwrProcSetServiceState(PWR_PROC_ServiceState *sState);
 
 #ifdef __cplusplus
 }
