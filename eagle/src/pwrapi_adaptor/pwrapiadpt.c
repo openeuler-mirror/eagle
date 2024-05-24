@@ -8,7 +8,7 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: queyanwen
+ * Author: queyanwen, wuhaotian
  * Create: 2023-06-28
  * Description: adaptor the powerapi
  * **************************************************************************** */
@@ -77,6 +77,14 @@ int PwrapiReleaseControlAuth(void)
 {
     if (PWR_ReleaseControlAuth() != PWR_SUCCESS) {
          return ERR_INVOKE_PWRAPI_FAILED;
+    }
+    return SUCCESS;
+}
+
+int PwrapiCpuGetFreqGovernor(char gov[], uint32_t size)
+{
+    if (PWR_CPU_GetFreqGovernor(gov, size) != PWR_SUCCESS) {
+        return ERR_INVOKE_PWRAPI_FAILED;
     }
     return SUCCESS;
 }

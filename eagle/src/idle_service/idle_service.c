@@ -112,8 +112,11 @@ int SRV_Stop(void)
         SrvLog(INFO, "There is no origin cpu idle governor");
         return SUCCESS;
     }
-    return PwrapiCpuSetIdleGovernor(idle_origin_gov);
-    return SUCCESS;
+    int ret = PwrapiCpuSetIdleGovernor(idle_origin_gov);
+    if (ret != SUCCESS) {
+        SrvLog(ERROR, "Failed to set origin idle governor, ret is %d.", ret);
+    }
+    return ret;
 }
 
 int SRV_Uninit(void)
