@@ -29,6 +29,8 @@ static void (*g_log_callback)(int level, const char *usInfo, const char *fmt, va
     = DefaultLogCallback;
 static char g_id[MAX_VALUE] = {0};
 
+static char freq_origin_gov[PWR_MAX_ELEMENT_NAME_LEN] = {0};
+
 static inline void SrvLog(int level, const char *fmt, ...)
 {
     if (g_log_callback) {
@@ -106,6 +108,11 @@ int SRV_Start(void* pcy)
         SrvLog(ERROR, "SRV_Start, pcy is null");
         return ERR_NULL_POINTER;
     }
+    int ret = PwrapiCpuGetFreqGovernor(freq_origin_gov, PWR_MAX_ELEMENT_NAME_LEN);
+    if (ret != SUCCESS) {
+        SrvLog(ERROR, "Failed to get origin freq governor, ret is %d.", ret);
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
     return ParsePolicy((FreqServicePcy*)pcy);
 }
 
@@ -126,8 +133,15 @@ int SRV_Looper(void)
 
 int SRV_Stop(int mode)
 {
-    // todo
-    return SUCCESS;
+    if (strlen(freq_origin_gov) == 0) {
+        SrvLog(INFO, "There is no origin cpu freq governor");
+        return SUCCESS;
+    }
+    int ret = PwrapiCpuSetFreqGovernor(freq_origin_gov);
+    if (ret != SUCCESS) {
+        SrvLog(ERROR, "Failed to set origin freq governor, ret is %d.", ret);
+    }
+    return ret;
 }
 
 int SRV_Uninit(void)
