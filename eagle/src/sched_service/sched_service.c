@@ -21,6 +21,7 @@
 #include "pwrapiadpt.h"
 
 static SchedServicePcy *g_schedPcy = NULL;
+static SchedServicePcy g_originSchedPcy = {0};
 
 static void DefaultLogCallback(int level, const char *usInfo, const char *fmt, va_list vl)
 {
@@ -48,17 +49,43 @@ static int ParsePolicy(const SchedServicePcy *schedPcy)
     (void)PwrProcSetWattFirstDomain(schedPcy->wattFirstDomain);
     (void)PwrProcSetWattState(schedPcy->wattEnable);
     if (schedPcy->wattEnable) {
-        (void)PwrapiProcSetWattAttr(schedPcy);
-        (void)PwrapiProcAddWattProcs(schedPcy->wattProcs);
+        (void)PwrProcSetWattAttr(schedPcy);
+        (void)PwrProcAddWattProcs(schedPcy->wattProcs);
     }
 
     (void)PwrProcSetSmartGridState(schedPcy->sgEnable);
     if (schedPcy->sgEnable) {
-        (void)PwrapiProcAddSmartGridProcs(schedPcy->sgVipProcs);
-        (void)PwrapiProcSetSmartGridGov(schedPcy);
+        (void)PwrProcAddSmartGridProcs(schedPcy->sgVipProcs);
+        (void)PwrProcSetSmartGridGov(schedPcy);
     }
 
     return ret;
+}
+
+static int BackupOriginPolicy(void)
+{
+    if (PwrProcGetWattState(&(g_originSchedPcy.wattEnable)) != SUCCESS) {
+        SrvLog(ERROR, "Failed to get watt state");
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+
+    // watt schedule is disable, no need to backup other policy
+    if (g_originSchedPcy.wattEnable == 0) {
+        return SUCCESS;
+    }
+
+    if ((PwrProcGetWattAttrs(&g_originSchedPcy) != SUCCESS) ||
+        (PwrProcGetSmartGridState(&(g_originSchedPcy.sgEnable)) != SUCCESS) ||
+        (PwrProcGetSmartGridGov(&g_originSchedPcy) != SUCCESS)) {
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+
+    return SUCCESS;
+}
+
+static int RestoreOriginPolicy(void)
+{
+    return ParsePolicy(&g_originSchedPcy);
 }
 
 // public ===============================================================================
@@ -88,6 +115,7 @@ int SRV_Start(void* pcy)
         return ERR_NULL_POINTER;
     }
     g_schedPcy = (SchedServicePcy*)pcy;
+    BackupOriginPolicy();
     return ParsePolicy((SchedServicePcy*)pcy);
 }
 
@@ -105,19 +133,18 @@ int SRV_Looper(void)
 {
     // Keep adding task to the watt task queue.
     if (g_schedPcy->wattEnable) {
-        (void)PwrapiProcAddWattProcs(g_schedPcy->wattProcs);
+        (void)PwrProcAddWattProcs(g_schedPcy->wattProcs);
     }
 
     if (g_schedPcy->sgEnable) {
-        (void)PwrapiProcAddSmartGridProcs(g_schedPcy->sgVipProcs);
+        (void)PwrProcAddSmartGridProcs(g_schedPcy->sgVipProcs);
     }
     return SUCCESS;
 }
 
 int SRV_Stop(int mode)
 {
-    // todo
-    return SUCCESS;
+    return RestoreOriginPolicy();
 }
 
 int SRV_Uninit(void)
