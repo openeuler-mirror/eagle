@@ -22,7 +22,10 @@
 
 static void DefaultLogCallback(int level, const char *usInfo, const char *fmt, va_list vl)
 {
-    printf(fmt);
+    (void)level;
+    (void)usInfo;
+
+    vprintf(fmt, vl);
 }
 
 static void (*g_log_callback)(int level, const char *usInfo, const char *fmt, va_list vl)

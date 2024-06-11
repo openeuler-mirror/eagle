@@ -9,3 +9,4 @@ add_subdirectory(src/idle_service)
 add_subdirectory(src/mpc_service)
 add_subdirectory(src)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow -Wstrict-prototypes -Wmissing-prototypes -Werror")

@@ -42,10 +42,10 @@ const char *GetCurFmtTmStr(const char *fmt, char *strTime, int bufLen)
     }
     curTime = GetCurTv();
     tmp = localtime_r(&curTime.tv_sec, &tmpTm);
-    if (strftime(strStdTime, sizeof(strStdTime), fmt, tmp) < 0) {
+    if (strftime(strStdTime, sizeof(strStdTime), fmt, tmp) == 0) {
         return NULL;
     }
-    if (strlen(strStdTime) > bufLen - 1) {
+    if ((int)strlen(strStdTime) > bufLen - 1) {
         return NULL;
     }
     strcpy(strTime, strStdTime);
@@ -65,14 +65,14 @@ const char *GetCurFullTime(char *fullTime, int bufLen)
     curTime = GetCurTv();
 
     tmp = localtime_r(&curTime.tv_sec, &tmpTm);
-    if (strftime(strStdTime, sizeof(strStdTime), "%F %T", tmp) < 0) {
+    if (strftime(strStdTime, sizeof(strStdTime), "%F %T", tmp) == 0) {
         return NULL;
     }
     res = snprintf(strTime, sizeof(strTime) - 1, "%s.%ld", strStdTime, curTime.tv_usec / MS_TO_SEC);
     if (res < 0) {
         return NULL;
     }
-    if (strlen(strTime) > bufLen - 1) {
+    if ((int)strlen(strTime) > bufLen - 1) {
         return NULL;
     }
     strcpy(fullTime, strTime);
@@ -154,7 +154,7 @@ char *Rtrim(char *s)
 
 static void StrCopy(char *dest, const char *src, int destSize)
 {
-    unsigned int len = strlen(src) < destSize ? strlen(src) : destSize - 1;
+    unsigned int len = strlen(src) < (size_t)destSize ? strlen(src) : (size_t)destSize - 1;
     strncpy(dest, src, len);
     dest[len] = '\0';
 }
@@ -176,7 +176,7 @@ int GetMd5(const char *filename, char *md5)
         pclose(fp);
         return ERR_COMMON;
     }
-    strncpy(md5, buf, sizeof(buf));
+    strncpy(md5, buf, MD5_LEN);
     pclose(fp);
     return SUCCESS;
 }
