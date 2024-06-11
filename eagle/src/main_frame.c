@@ -56,6 +56,7 @@ static void ClearEnv(void)
 
 static void SignalHandler(int none)
 {
+    (void)none;
     g_keepMainRunning = FALSE;
 }
 

@@ -22,7 +22,10 @@
 
 static void DefaultLogCallback(int level, const char *usInfo, const char *fmt, va_list vl)
 {
-    printf(fmt);
+    (void)level;
+    (void)usInfo;
+
+    vprintf(fmt, vl);
 }
 
 static void (*g_log_callback)(int level, const char *usInfo, const char *fmt, va_list vl)
@@ -133,6 +136,7 @@ int SRV_Looper(void)
 
 int SRV_Stop(int mode)
 {
+    (void)mode; // reserved
     if (strlen(freq_origin_gov) == 0) {
         SrvLog(INFO, "There is no origin cpu freq governor");
         return SUCCESS;

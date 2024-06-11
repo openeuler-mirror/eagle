@@ -80,7 +80,6 @@ static const char g_freqGov[][MAX_KEY_LEN] = {
     {"schedutil"}
 };
 static const char g_idleGov[][MAX_KEY_LEN] = {{"menu"}, {"teo"}, {"ladder"}, {"haltpoll"}};
-static const char g_alpm[][MAX_KEY_LEN] = {{"min_power"}, {"medium_power"}, {"max_performance"}};
 static int g_cpuNum = 0;    // cpu core number
 static int g_numaNum = 0;   // NUMA number
 

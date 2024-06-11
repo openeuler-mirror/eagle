@@ -196,7 +196,7 @@ static int UpdateLogCfg(enum CnfItemType type, char *value)
     return SUCCESS;
 }
 
-static enum CnfItemType StringToEnum(char *str)
+static enum CnfItemType StringToEnum(const char *str)
 {
     for (int i = 0; i < CNF_ITEM_CNT; i++) {
         if (strcmp(str, CnfItemMap[i].itemName) == 0) {
@@ -206,7 +206,7 @@ static enum CnfItemType StringToEnum(char *str)
     return DEFAULT_CONFIG_ITEM_TYPE;
 }
 
-int UpdateConfig(char *key, char *value)
+static int UpdateConfig(char *key, char *value)
 {
     enum CnfItemType type = StringToEnum(key);
 
@@ -352,28 +352,4 @@ int CheckAndUpdateConfig(void)
     }
     ret = GetCfgItem(realpathRes);
     return ret;
-}
-
-int GetLogLevel(void)
-{
-    return g_logCfg.logLevel;
-}
-
-static enum LogLevel CauLeve(int level)
-{
-    enum LogLevel lgLvl;
-    switch (level) {
-        case DEBUG:
-            lgLvl = DEBUG;
-            break;
-        case INFO:
-            lgLvl = INFO;
-            break;
-        case WARNING:
-            lgLvl = WARNING;
-            break;
-        default:
-            lgLvl = ERROR;
-    }
-    return lgLvl;
 }

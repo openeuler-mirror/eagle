@@ -234,14 +234,17 @@ int PwrProcAddSmartGridProcs(const char *keyWords)
     sgProcs->level = PWR_PROC_SG_LEVEL_0; // vip
     sgProcs->procNum = PWR_MAX_PROC_NUM;
 
-    if (PWR_PROC_QueryProcs(kw, sgProcs->procs, &(sgProcs->procNum)) != PWR_SUCCESS) {
+    if (PWR_PROC_QueryProcs(kw, sgProcs->procs, (uint32_t *)&(sgProcs->procNum)) != PWR_SUCCESS) {
+        free(sgProcs);
         return ERR_INVOKE_PWRAPI_FAILED;
     }
     if (sgProcs->procNum != 0) {
         if (PWR_PROC_SetSmartGridLevel(sgProcs) != PWR_SUCCESS) {
+            free(sgProcs);
             return ERR_INVOKE_PWRAPI_FAILED;
         }
     }
+    free(sgProcs);
     return SUCCESS;
 }
 
