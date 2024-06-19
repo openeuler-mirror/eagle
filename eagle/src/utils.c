@@ -111,12 +111,15 @@ int MkDirs(const char *sDirName)
 int IsNumStr(const char *pStr)
 {
     int len;
-    int idx;
+    int idx = 0;
     if (pStr == NULL) {
         return 0;
     }
     len = strlen(pStr);
-    for (idx = 0; idx < len; ++idx) {
+    if (len > 0 && pStr[0] == '-') {
+        ++idx;
+    }
+    for (; idx < len; ++idx) {
         if (!isdigit(pStr[idx])) {
             return 0;
         }

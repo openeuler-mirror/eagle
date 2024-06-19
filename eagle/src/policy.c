@@ -14,6 +14,7 @@
  * **************************************************************************** */
 
 #include "policy.h"
+#include <math.h>
 #include <string.h>
 #include <limits.h>
 #include <stdio.h>
@@ -223,10 +224,11 @@ static int FullfillSchedItem(Policy *pcy, const char *name, const char *value)
         return StrToIntWithRangeChk(value, &pcy->schedPcy.wattInterval, MIN_WATT_INTERVAL, MAX_WATT_INTERVAL);
     }
     if (strcmp(name, PCP_ITEM_SCHED_WATT_DMSK) == 0) {
-        return StrToIntWithRangeChk(value, &pcy->schedPcy.wattMask, 0, g_numaNum);
+        int tmpMax = pow(2, g_numaNum) - 1;
+        return StrToIntWithRangeChk(value, &pcy->schedPcy.wattMask, 0, tmpMax);
     }
     if (strcmp(name, PCP_ITEM_SCHED_WATT_FD) == 0) {
-        return StrToIntWithRangeChk(value, &pcy->schedPcy.wattFirstDomain, 0, g_cpuNum);
+        return StrToIntWithRangeChk(value, &pcy->schedPcy.wattFirstDomain, 0, g_cpuNum - 1);
     }
     if (strcmp(name, PCP_ITEM_SCHED_WATT_PROCS) == 0) {
         strncpy(pcy->schedPcy.wattProcs, value, sizeof(pcy->schedPcy.wattProcs) - 1);

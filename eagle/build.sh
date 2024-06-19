@@ -2,7 +2,13 @@
 
 mkdir build
 cd build
-cmake ..
+
+if [[ "$1" == "export" ]];then
+    cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ..
+else
+    cmake ..
+fi
+
 if [ $? -ne 0 ]; then
     exit 1
 fi

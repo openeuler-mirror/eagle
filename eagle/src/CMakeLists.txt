@@ -22,7 +22,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR} EAGLE_SRC_DIR)
 # Set compiling policy
 set (PG_NAME ${PROJECT_NAME})
 add_executable (${PG_NAME} ${EAGLE_SRC_DIR})
-target_link_libraries(${PG_NAME} -lpwrapi_adaptor -lpwrapi -ldl -lpthread -lnuma)
+target_link_libraries(${PG_NAME} -lpwrapi_adaptor -lpwrapi -ldl -lpthread -lnuma -lm)
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Set installaltion path
