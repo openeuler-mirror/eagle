@@ -230,11 +230,12 @@ void UpdateServices(void)
             if (services[i].status == ST_OFFLOAD) {
                 (void)LoadService(i);
                 (void)StartService(i);
+                continue;
             }
             if (services[i].status == ST_LOADED) {
                 (void)StartService(i);
+                continue;
             }
-            continue;
         }
 
         if (services[i].status == ST_RUNNING && srvPcyMap[i].curPcy->modified) {
