@@ -101,12 +101,25 @@ int main(int argc, const char *args[])
     while (g_keepMainRunning) {
         sleep(MAIN_THREAD_LOOP_INTERVAL);
         count++;
+
         if (count % (GetTimerCfg()->cfgUpdataInterval / MAIN_THREAD_LOOP_INTERVAL) == 0) {
             CheckAndUpdateConfig();
         }
+
         if (count % (GetTimerCfg()->policyUpdateInterval / MAIN_THREAD_LOOP_INTERVAL) == 0) {
             CheckAndUpdatePolicy();
             TriggerTimer();
+        }
+
+        if (HasNotifiedAuthReleased()) {
+            ReleaseCtrlAuthFromPapis(EXIT_MODE_KEEP_STATUS);
+        }
+
+        if (HasPapisCtrlAuth() != TRUE) {
+            if (RequestCtrlAuthFromPapis() != SUCCESS) {
+                continue;
+            }
+            StartAllServices();
         }
     }
     StopEagleSystem(EXIT_MODE_RESTORE);

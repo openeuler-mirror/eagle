@@ -23,6 +23,8 @@
 
 
 static int g_hasRegistedToPapis = FALSE;
+static int g_hasCtrlAuth = FALSE;
+static int g_hasNotifiedAuthReleased = FALSE;
 
 static void PwrapiLogCallback(int level, const char *fmt, va_list vl)
 {
@@ -43,7 +45,7 @@ static void EventCallback(const PWR_COM_EventInfo *eventInfo)
     switch (eventInfo->eventType) {
         case PWR_COM_EVTTYPE_AUTH_RELEASED:
             // As the config auth has been released, eagle couldn't restore the system configuration.
-            StopEagleSystem(EXIT_MODE_KEEP_STATUS);
+            g_hasNotifiedAuthReleased = TRUE;
             break;
         case PWR_COM_EVTTYPE_CRED_FAILED:
         default:
@@ -64,6 +66,8 @@ static int RegisterToPapis(void)
         return ret;
     }
     g_hasRegistedToPapis = TRUE;
+    g_hasCtrlAuth = TRUE;
+    g_hasNotifiedAuthReleased = FALSE;
     return SUCCESS;
 }
 
@@ -72,6 +76,7 @@ static void UnRegisterFromPapis(void)
     PwrapiReleaseControlAuth();
     PwrapiUnRegister();
     g_hasRegistedToPapis = FALSE;
+    g_hasCtrlAuth = FALSE;
 }
 
 static int BackupOriginalSettings(void)
@@ -136,13 +141,47 @@ void StopEagleSystem(int mode)
     UnRegisterFromPapis();
 }
 
+int RequestCtrlAuthFromPapis(void)
+{
+    if (PwrapiRequestControlAuth() != SUCCESS) {
+        return FAILED;
+    }
+    g_hasCtrlAuth = TRUE;
+    return SUCCESS;
+}
+
+void ReleaseCtrlAuthFromPapis(int mode)
+{
+    StopServices(mode);
+    PwrapiRequestControlAuth();
+    g_hasCtrlAuth = FALSE;
+    g_hasNotifiedAuthReleased = FALSE;
+}
+
 void CheckAndUpdatePolicy(void)
 {
-    if(UpdatePolicy()) {
+    if(UpdatePolicy() && g_hasCtrlAuth == TRUE) {
         UpdateServices();
     }
 }
 void TriggerTimer(void)
 {
-    TriggerTimerForServices();
+    if (g_hasCtrlAuth == TRUE) {
+        TriggerTimerForServices();
+    }
+}
+
+int HasNotifiedAuthReleased(void)
+{
+    return g_hasNotifiedAuthReleased;
+}
+
+int HasPapisCtrlAuth(void)
+{
+    return g_hasCtrlAuth;
+}
+
+void StartAllServices(void)
+{
+    StartServices();
 }

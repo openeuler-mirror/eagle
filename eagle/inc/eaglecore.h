@@ -20,4 +20,9 @@ int StartEagleSystem(void);
 void StopEagleSystem(int mode);
 void CheckAndUpdatePolicy(void);
 void TriggerTimer(void);
+int HasNotifiedAuthReleased(void);
+int RequestCtrlAuthFromPapis(void);
+void ReleaseCtrlAuthFromPapis(int mode);
+int HasPapisCtrlAuth(void);
+void StartAllServices(void);
 #endif
