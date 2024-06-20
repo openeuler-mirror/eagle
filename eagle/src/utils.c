@@ -155,21 +155,13 @@ char *Rtrim(char *s)
     return s;
 }
 
-static void StrCopy(char *dest, const char *src, int destSize)
-{
-    unsigned int len = strlen(src) < (size_t)destSize ? strlen(src) : (size_t)destSize - 1;
-    strncpy(dest, src, len);
-    dest[len] = '\0';
-}
-
 int GetMd5(const char *filename, char *md5)
 {
     char md5Cmd[MAX_NAME_LEN];
     const char s1[] = "md5sum ";
     const char s2[] = " | awk '{print $1}'";
-    StrCopy(md5Cmd, s1, MAX_NAME_LEN);
-    strncat(md5Cmd, filename, strlen(filename));
-    strncat(md5Cmd, s2, strlen(s2));
+    snprintf(md5Cmd, sizeof(md5Cmd), "%s%s%s", s1, filename, s2);
+
     FILE *fp = popen(md5Cmd, "r");
     if (fp == NULL) {
         return ERR_NULL_POINTER;
@@ -203,7 +195,7 @@ void LRtrim(char *str)
     str[i] = '\0';
 }
 
-int NormalizeAndVerifyFilepath(const char *filename, char *realpathRes)
+int NormalizeAndVerifyFilepath(const char *filename, char *realpathRes, int pathLen)
 {
     if (realpathRes == NULL || filename == NULL) {
         return ERR_PATH_NORMALIZE;
@@ -213,7 +205,8 @@ int NormalizeAndVerifyFilepath(const char *filename, char *realpathRes)
     if (path == NULL) {
         return ERR_NULL_POINTER;
     }
-    strncpy(realpathRes, path, strlen(path));
+    // strncpy(realpathRes, path, strlen(path));
+    snprintf(realpathRes, pathLen, "%s", path);
     // Verify file path
     if (access(realpathRes, F_OK) != 0) {
         free(path);

@@ -87,7 +87,7 @@ static int UpdatePolicyCfg(enum CnfItemType type, char *value)
     char realpathRes[MAX_FULL_NAME] = {0};
     switch (type) {
         case E_CFG_IT_PCY:
-            ret = NormalizeAndVerifyFilepath(value, realpathRes);
+            ret = NormalizeAndVerifyFilepath(value, realpathRes, MAX_FULL_NAME);
             if (ret != SUCCESS) {
                 Logger(ERROR, MD_NM_CFG, "Policy_file_path in config is invalid. ret:%d", ret);
                 return ERR_INVALIDE_PARAM;
@@ -95,12 +95,13 @@ static int UpdatePolicyCfg(enum CnfItemType type, char *value)
             strncpy(g_policyCfg.policyFile, value, sizeof(g_policyCfg.policyFile) - 1);
             break;
         case E_CFG_IT_PPTH:
-            ret = NormalizeAndVerifyFilepath(value, realpathRes);
+            ret = NormalizeAndVerifyFilepath(value, realpathRes, MAX_FULL_NAME);
             if (ret != SUCCESS) {
                 Logger(ERROR, MD_NM_CFG, "plugin_path in config is invalid. ret:%d", ret);
                 return ERR_INVALIDE_PARAM;
             }
             strncpy(g_policyCfg.pluginPath, value, sizeof(g_policyCfg.pluginPath) - 1);
+            g_policyCfg.pluginPath[sizeof(g_policyCfg.pluginPath) - 1] = '\0';
             break;
         default:
             break;
@@ -168,23 +169,26 @@ static int UpdateLogCfg(enum CnfItemType type, char *value)
             g_logCfg.logLevel = actualValue;
             break;
         case E_CFG_IT_LGP:
-            ret = NormalizeAndVerifyFilepath(value, realpathRes);
+            ret = NormalizeAndVerifyFilepath(value, realpathRes, MAX_FULL_NAME);
             if (ret != SUCCESS) {
                 Logger(ERROR, MD_NM_CFG, "Log_path in config is invalid. ret:%d", ret);
                 return ERR_INVALIDE_PARAM;
             }
             strncpy(g_logCfg.logPath, value, sizeof(g_logCfg.logPath) - 1);
+            g_logCfg.logPath[sizeof(g_logCfg.logPath) - 1] = '\0';
             break;
         case E_CFG_IT_BKP:
-            ret = NormalizeAndVerifyFilepath(value, realpathRes);
+            ret = NormalizeAndVerifyFilepath(value, realpathRes, MAX_FULL_NAME);
             if (ret != SUCCESS) {
                 Logger(ERROR, MD_NM_CFG, "Bak_log_path in config is invalid. ret:%d", ret);
                 return ERR_INVALIDE_PARAM;
             }
             strncpy(g_logCfg.logBkp, value, sizeof(g_logCfg.logBkp) - 1);
+            g_logCfg.logBkp[sizeof(g_logCfg.logBkp) - 1] = '\0';
             break;
         case E_CFG_IT_PFX:
             strncpy(g_logCfg.logPfx, value, sizeof(g_logCfg.logPfx) - 1);
+            g_logCfg.logPfx[sizeof(g_logCfg.logPfx) - 1] = '\0';
             char strFlRgx[MAX_NAME] = {0};
             if (sprintf(strFlRgx, "^%s-[[:digit:]]{14}.tar.gz$", g_logCfg.logPfx) < 0) {
                 return ERR_SYS_EXCEPTION;
@@ -254,8 +258,10 @@ static int GetCfgItem(char *realpathRes)
             continue;
         }
 
-        strncpy(key, line, index - line);
-        strncpy(value, index + 1, sizeof(value));
+        int keyLen = (index - line < MAX_KEY_LEN - 1) ? (index - line) : (MAX_KEY_LEN - 1);
+        strncpy(key, line, keyLen);
+        strncpy(value, index + 1, sizeof(value) - 1);
+
         LRtrim(key);
         LRtrim(value);
         if (strlen(key) == 0 || strlen(value) == 0) {
@@ -272,7 +278,7 @@ static int LoadConfigFile(void)
 {
     char realpathRes[MAX_FULL_NAME] = {0};
 
-    int ret = NormalizeAndVerifyFilepath(g_configPath, realpathRes);
+    int ret = NormalizeAndVerifyFilepath(g_configPath, realpathRes, MAX_FULL_NAME);
     if (ret != SUCCESS) {
         return ret;
     }
@@ -346,7 +352,7 @@ int CheckAndUpdateConfig(void)
     strncpy(g_lastMd5, curMd5, sizeof(g_lastMd5));
 
     char realpathRes[MAX_FULL_NAME] = {0};
-    int ret = NormalizeAndVerifyFilepath(g_configPath, realpathRes);
+    int ret = NormalizeAndVerifyFilepath(g_configPath, realpathRes, MAX_FULL_NAME);
     if (ret != SUCCESS) {
         return ret;
     }
