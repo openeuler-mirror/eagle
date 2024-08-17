@@ -51,7 +51,7 @@ static int ParsePolicy(const IdleServicePcy *idlePcy)
         ret = PwrapiCpuSetIdleGovernor(idlePcy->idleGov);
         if ( ret != SUCCESS)
         {
-            SrvLog(ERROR, "idle_sevice. set cpuidle gov to %s failed.", idlePcy->idleGov);
+            SrvLog(ERROR, "idle_service. set cpuidle gov to %s failed.", idlePcy->idleGov);
             return ret;
         }
     }

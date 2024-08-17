@@ -54,7 +54,7 @@ static int ParsePolicy(const FreqServicePcy *freqPcy)
         ret = PwrapiCpuSetFreqGovernor(freqPcy->freqGov);
         if ( ret != SUCCESS)
         {
-            SrvLog(ERROR, "freq_sevice. set cpufreq gov to %s failed.", freqPcy->freqGov);
+            SrvLog(ERROR, "freq_service. set cpufreq gov to %s failed.", freqPcy->freqGov);
             return ret;
         }
     }
@@ -66,7 +66,7 @@ static int ParsePolicy(const FreqServicePcy *freqPcy)
         ret = PwrapiCpuSetFreqGovAttribute(CPUFREQ_ATTR_SAMPLING_RATE, str_sr);
         if ( ret != SUCCESS)
         {
-            SrvLog(ERROR, "freq_sevice. set gov sampling rate to %s failed.", str_sr);
+            SrvLog(ERROR, "freq_service. set gov sampling rate to %s failed.", str_sr);
             return ret;
         }
     }
@@ -78,7 +78,7 @@ static int ParsePolicy(const FreqServicePcy *freqPcy)
         ret = PwrapiCpuSetFreqGovAttribute(CPUFREQ_ATTR_PERF_LOSS_RATE, str_plr);
         if ( ret != SUCCESS)
         {
-            SrvLog(ERROR, "freq_sevice. set gov perfLossRate to %s failed.", str_plr);
+            SrvLog(ERROR, "freq_service. set gov perfLossRate to %s failed.", str_plr);
             return ret;
         }
     }

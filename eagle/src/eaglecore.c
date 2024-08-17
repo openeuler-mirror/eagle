@@ -164,7 +164,7 @@ int RequestCtrlAuthFromPapis(void)
 void ReleaseCtrlAuthFromPapis(int mode)
 {
     StopServices(mode);
-    PwrapiRequestControlAuth();
+    PwrapiReleaseControlAuth();
     g_hasCtrlAuth = FALSE;
     g_hasNotifiedAuthReleased = FALSE;
 }
