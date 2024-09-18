@@ -113,6 +113,22 @@ int SRV_SetLogCallback(void(LogCallback)(int, const char *, const char *, va_lis
 int SRV_Init(void)
 {
     SrvLog(INFO, "mpc_service initialized.");
+
+    PWR_PROC_ServiceStatus mpc_status = {0};
+    mpc_status.name = PWR_PROC_SERVICE_MPCTOOL;
+    int ret = PwrProcGetServiceState(&mpc_status);
+    if (ret != SUCCESS) {
+        SrvLog(ERROR, "Failed to get mpc service status, ret is %d.", ret);
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+
+    if (mpc_status.status == PWR_PROC_SRV_ST_UNKNOWN) {
+        SrvLog(ERROR, "There is no mpc service.");
+	return ERR_NO_SERVICE_AVAILABLE;
+    }
+
+    mpc_origin_stat = mpc_status.status;
+
     return SUCCESS;
 }
 
@@ -122,21 +138,6 @@ int SRV_Start(void* pcy)
         SrvLog(ERROR, "mpc service start failed, pcy is null");
         return ERR_NULL_POINTER;
     }
-
-    PWR_PROC_ServiceStatus mpc_status = {0};
-    mpc_status.name = PWR_PROC_SERVICE_MPCTOOL;
-    int ret = PwrProcGetServiceState(&mpc_status);
-    if (ret != SUCCESS) {
-        SrvLog(ERROR, "Failed to get mpc service status, ret is %d.", ret);
-        return ERR_INVOKE_PWRAPI_FAILED;
-    }
-    // there is no mpc service，nothing to do
-    if (mpc_status.status == PWR_PROC_SRV_ST_UNKNOWN) {
-        SrvLog(ERROR, "There is no mpc service.");
-        return ERR_NO_SERVICE_AVAILABLE;
-    }
-
-    mpc_origin_stat = mpc_status.status;
 
     return ParsePolicy((MpcServicePcy*)pcy);
 }

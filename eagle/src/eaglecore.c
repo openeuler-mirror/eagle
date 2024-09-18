@@ -95,7 +95,12 @@ static int RestoreOriginalSettings(void)
 /* ****************public**************************************** */
 int InitEagleSystem(void)
 {
-    int ret = InitPolicyMgr();
+    int ret = RegisterToPapis();
+    if(ret != SUCCESS){
+        Logger(ERROR, MD_NM_ECORE, "RegisterToPapis failed. ret:%d", ret);
+	return ret;
+    }
+    ret = InitPolicyMgr();
     if (ret != SUCCESS) {
         Logger(ERROR, MD_NM_ECORE, "InitPolicyMgr failed. ret:%d", ret);
         return ret;

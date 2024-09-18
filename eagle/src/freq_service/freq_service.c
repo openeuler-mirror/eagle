@@ -102,6 +102,11 @@ int SRV_SetLogCallback(void(LogCallback)(int, const char *, const char *, va_lis
 int SRV_Init(void)
 {
     SrvLog(INFO, "freq_sevice initialized.");
+    int ret = PwrapiCpuGetFreqGovernor(freq_origin_gov, PWR_MAX_ELEMENT_NAME_LEN);
+    if (ret != SUCCESS) {
+        SrvLog(ERROR, "Failed to get origin freq governor, ret is %d.", ret);
+	return ERR_INVOKE_PWRAPI_FAILED;
+    }
     return SUCCESS;
 }
 
@@ -110,11 +115,6 @@ int SRV_Start(void* pcy)
     if (!pcy) {
         SrvLog(ERROR, "SRV_Start, pcy is null");
         return ERR_NULL_POINTER;
-    }
-    int ret = PwrapiCpuGetFreqGovernor(freq_origin_gov, PWR_MAX_ELEMENT_NAME_LEN);
-    if (ret != SUCCESS) {
-        SrvLog(ERROR, "Failed to get origin freq governor, ret is %d.", ret);
-        return ERR_INVOKE_PWRAPI_FAILED;
     }
     return ParsePolicy((FreqServicePcy*)pcy);
 }
