@@ -68,8 +68,9 @@ static int BackupOriginPolicy(void)
         SrvLog(ERROR, "Failed to get watt state");
         return ERR_INVOKE_PWRAPI_FAILED;
     }
-
+    
     // watt schedule is disable, no need to backup other policy
+    // only if wattenable is 1 the other value can be change
     if (g_originSchedPcy.wattEnable == 0) {
         return SUCCESS;
     }
@@ -105,6 +106,7 @@ int SRV_SetLogCallback(void(LogCallback)(int, const char *, const char *, va_lis
 int SRV_Init(void)
 {
     SrvLog(INFO, "sched_service initialized.");
+    BackupOriginPolicy();
     return SUCCESS;
 }
 
@@ -115,7 +117,6 @@ int SRV_Start(void* pcy)
         return ERR_NULL_POINTER;
     }
     g_schedPcy = (SchedServicePcy*)pcy;
-    BackupOriginPolicy();
     return ParsePolicy((SchedServicePcy*)pcy);
 }
 
@@ -144,7 +145,8 @@ int SRV_Looper(void)
 
 int SRV_Stop(int mode)
 {
-    return RestoreOriginPolicy();
+    int ret = RestoreOriginPolicy();
+    return ret;
 }
 
 int SRV_Uninit(void)

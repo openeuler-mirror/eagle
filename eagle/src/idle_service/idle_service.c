@@ -75,6 +75,13 @@ int SRV_SetLogCallback(void(LogCallback)(int, const char *, const char *, va_lis
 int SRV_Init(void)
 {
     SrvLog(INFO, "idle_sevice initialized.");
+
+    int ret = PwrapiCpuGetIdleGovernor(idle_origin_gov, PWR_MAX_ELEMENT_NAME_LEN);
+    if(ret != SUCCESS) {
+        SrvLog(ERROR, "Failed to get origin idle governor, ret is %d.", ret);
+        return ERR_INVOKE_PWRAPI_FAILED;
+    }
+
     return SUCCESS;
 }
 
@@ -83,12 +90,6 @@ int SRV_Start(void* pcy)
     if (!pcy) {
         SrvLog(ERROR, "SRV_Start, pcy is null");
         return ERR_NULL_POINTER;
-    }
-
-    int ret = PwrapiCpuGetIdleGovernor(idle_origin_gov, PWR_MAX_ELEMENT_NAME_LEN);
-    if (ret != SUCCESS) {
-        SrvLog(ERROR, "Failed to get origin idle governor, ret is %d.", ret);
-        return ERR_INVOKE_PWRAPI_FAILED;
     }
 
     return ParsePolicy((IdleServicePcy*)pcy);
