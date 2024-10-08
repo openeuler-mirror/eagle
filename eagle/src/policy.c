@@ -45,7 +45,7 @@
 #define PCP_ITEM_SCHED_WATT_PROCS "watt_procs"
 #define PCP_ITEM_SCHED_SG_ENABLE "smart_grid_enable"
 #define PCP_ITEM_SCHED_SG_VIP_PROCS "smart_grid_vip_procs"
-#define PCP_ITEM_SCHED_SG_GOV_ENABLE "smart_grid_gov_eable"
+#define PCP_ITEM_SCHED_SG_GOV_ENABLE "smart_grid_gov_enable"
 #define PCP_ITEM_SCHED_SG_VIP_GOV "smart_grid_vip_gov"
 #define PCP_ITEM_SCHED_SG_LEV1_GOV "smart_grid_lev1_gov"
 

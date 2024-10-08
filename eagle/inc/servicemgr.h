@@ -15,10 +15,11 @@
 #ifndef EAGLE_SERVICE_MGR_H__
 #define EAGLE_SERVICE_MGR_H__
 
-int InitServiceMgr(void);
+int LoadServices(void);
+int InitServices(void);
 int StartServices(void);
 void UpdateServices(void);
 void TriggerTimerForServices(void);
 void StopServices(int mode);
-void UninitServiceMgr(void);
+void UninitServices(void);
 #endif

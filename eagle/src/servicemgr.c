@@ -36,8 +36,9 @@ typedef int (*SrvFpUninit)(void);
 
 enum ServiceState {
     ST_OFFLOAD = 0,     // lib and functions not loaded
-    ST_LOADED = 1,      // lib and functions loaded and initiated
-    ST_RUNNING = 2,     // service started.
+    ST_LOADED = 1,      // lib and functions loaded 
+    ST_INITED = 2,     // lib and functions initiated
+    ST_RUNNING = 3,     // service started.
 };
 
 typedef struct Service {
@@ -110,7 +111,7 @@ static inline void OffloadService(int idx)
 
 static int LoadService(int idx)
 {
-    if (services[idx].status == ST_LOADED) {
+    if (services[idx].status !=  ST_OFFLOAD) {
         return TRUE;
     }
     char file[MAX_FILE_NAME] = {0};
@@ -134,14 +135,31 @@ static int LoadService(int idx)
         return ERR_DL_OPEN_FAILED;
     }
     services[idx].setLogCallback(SrvLogCallback, srvPcyMap[idx].curPcy->lib);
-    int ret = services[idx].init();
-    if (ret != SUCCESS) {
-        OffloadService(idx);
-        Logger(ERROR, MD_NM_SVRMGR, "Load service[%d] failed.", idx);
-        return ret;
-    }
+    
     services[idx].status = ST_LOADED;
     Logger(INFO, MD_NM_SVRMGR, "Service[%d] loaded.", idx);
+    return SUCCESS;
+}
+
+static int InitService(int idx)
+{
+    if (services[idx].status == ST_INITED || services[idx].status == ST_RUNNING) {
+        return TRUE;
+    }
+    if (services[idx].status == ST_OFFLOAD) {
+        Logger(ERROR, MD_NM_SVRMGR, "Service[%d] hasn't load, init failed", idx);
+	return ERR_SERVICE_NOT_LOAD;
+    }
+    int ret = services[idx].init();
+    if (ret != SUCCESS) {
+        if (services[idx].uninit) {
+	    services[idx].uninit();
+	}
+        Logger(ERROR, MD_NM_SVRMGR, "Init service[%d] failed.", idx);
+        return ret;
+    }
+    services[idx].status = ST_INITED;
+    Logger(INFO, MD_NM_SVRMGR, "Service[%d] inited.", idx);
     return SUCCESS;
 }
 
@@ -149,7 +167,7 @@ static inline void StopService(int idx, int mode)
 {
     if (services[idx].stop) {
         services[idx].stop(mode);
-        services[idx].status = ST_LOADED;
+        services[idx].status = ST_INITED;
         Logger(INFO, MD_NM_SVRMGR, "Service[%d] stopped. mode:%d", idx, mode);
     }
 }
@@ -177,11 +195,15 @@ static inline int ReloadAndStartService(int idx)
     if (ret != SUCCESS) {
         return ret;
     }
+    ret = InitService(idx);
+    if (ret != SUCCESS) {
+        return ret;
+    }
     return StartService(idx);
 }
 
 // public===========================================================================
-int InitServiceMgr(void)
+int LoadServices(void)
 {
     InitSrvPcyMap();
     for (int i = 0; i < MAX_SERVICE_NUM; i++) {
@@ -193,10 +215,22 @@ int InitServiceMgr(void)
     return SUCCESS;
 }
 
+int InitServices(void)
+{
+    for (int i = 0; i < MAX_SERVICE_NUM; i++) {
+        if (!srvPcyMap[i].curPcy || srvPcyMap[i].curPcy->enable != PCY_ENABLE) {
+            continue;
+        }
+        (void)InitService(i);
+    }
+    return SUCCESS;
+}
+
+
 int StartServices(void)
 {
     for (int i = 0; i < MAX_SERVICE_NUM; i++) {
-        if (services[i].status != ST_LOADED || services[i].start == NULL) {
+        if (services[i].status != ST_INITED || services[i].start == NULL) {
             continue;
         }
         (void)StartService(i);
@@ -229,10 +263,16 @@ void UpdateServices(void)
             }
             if (services[i].status == ST_OFFLOAD) {
                 (void)LoadService(i);
+		(void)InitService(i);
                 (void)StartService(i);
                 continue;
             }
-            if (services[i].status == ST_LOADED) {
+	    if (services[i].status == ST_LOADED) {
+	        (void)InitService(i);
+		(void)StartService(i);
+		continue;
+	    }
+            if (services[i].status == ST_INITED) {
                 (void)StartService(i);
                 continue;
             }
@@ -261,7 +301,7 @@ void StopServices(int mode)
     }
 }
 
-void UninitServiceMgr(void)
+void UninitServices(void)
 {
     for (int i = 0; i < MAX_SERVICE_NUM; i++) {
         if (services[i].status == ST_RUNNING && services[i].stop) {
