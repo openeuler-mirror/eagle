@@ -48,7 +48,7 @@ int UpdatePolicy(void)
     if (strlen(curMd5) == 0 || (strcmp(curMd5, pcyFileMd5) == 0 && !PluginLibModified(&g_curPolicy))) {
         return FALSE;
     }
-
+    strncpy(pcyFileMd5, curMd5, MD5_LEN);
     Logger(INFO, MD_NM_PCYMGR, "Policy file or plugin libs modified. path: %s", GetPolicyCfg()->policyFile);
     struct Policy pcy = {0};
     int ret = CreatePolicy(GetPolicyCfg()->policyFile, &pcy);

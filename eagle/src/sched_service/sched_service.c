@@ -46,8 +46,8 @@ static int ParsePolicy(const SchedServicePcy *schedPcy)
 {
     int ret = SUCCESS;
 
-    (void)PwrProcSetWattFirstDomain(schedPcy->wattFirstDomain);
     (void)PwrProcSetWattState(schedPcy->wattEnable);
+    (void)PwrProcSetWattFirstDomain(schedPcy->wattFirstDomain);
     if (schedPcy->wattEnable) {
         (void)PwrProcSetWattAttr(schedPcy);
         (void)PwrProcAddWattProcs(schedPcy->wattProcs);

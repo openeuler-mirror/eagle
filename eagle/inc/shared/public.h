@@ -232,6 +232,7 @@ enum RtnCode {
     ERR_FILE_NOT_EXIST = 400,
     ERR_FILE_CONTENT_ERROR,
     ERR_DL_OPEN_FAILED,
+    ERR_SERVICE_NOT_LOAD,
 };
 
 enum LogLevel {
