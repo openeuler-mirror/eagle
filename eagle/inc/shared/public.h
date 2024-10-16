@@ -10,7 +10,7 @@
  * See the Mulan PSL v2 for more details.
  * Author: luocaimin
  * Create: 2022-03-29
- * Description: provide const value defination
+ * Description: provide const value definition
  * **************************************************************************** */
 #ifndef EAGLE_PUBLIC_H__
 #define EAGLE_PUBLIC_H__
@@ -24,7 +24,7 @@
 #define MS_TO_SEC 1000
 #define ONE_HUNDRED 100
 
-// Status code defination
+// Status code definition
 #define INTERACT_SUCCEED 2003
 #define INTERACT_FAIL 2002
 #define NO_PROCESS 2000
@@ -85,7 +85,7 @@
 #define MAX_FULL_TIME 25
 // Gather
 #define MAX_PERIOD 3600
-// Sockt connetion closed
+// Sockt connection closed
 #define CONN_CLOSED (-753462)
 #define READ_DONE 1
 // Total number of items collected
@@ -126,12 +126,12 @@
 #define CPU_FIVE_MIN_LOAD_FIELD_NUM 2
 #define CPU_FIFTEEN_MIN_LOAD_FIELD_NUM 3
 
-// Memery data location define
+// Memory data location define
 #define FIRST_MATCH_LINE 1
 #define MEMINFO_DATA_FIELD_NUM 2
 #define NUMA_MEM_DATA_FIELD_NUM 4
 
-// Numa node name perfix length
+// Numa node name prefix length
 #define NUMA_NM_PX_LEN 13
 #define ZERO_USAGE "0"
 #define ST_CHANGE "2"
