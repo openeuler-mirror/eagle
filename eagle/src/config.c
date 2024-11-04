@@ -115,7 +115,7 @@ static int UpdateTimerCfg(enum CnfItemType type, char *value)
     switch (type) {
         case E_CFG_IT_CFG_UPD_INTVL:
             actualValue = atoi(value);
-            if (!IsNumStr(value) || actualValue <= 0 || actualValue > MAX_PERIOD) {
+            if (!IsNumStr(value) || actualValue < 5 || actualValue > MAX_PERIOD) {
                 Logger(ERROR, MD_NM_CFG, "Config_update_interval in config is invalid");
                 return ERR_INVALIDE_PARAM;
             }
@@ -123,7 +123,7 @@ static int UpdateTimerCfg(enum CnfItemType type, char *value)
             break;
         case E_CFG_IT_PCY_UPD_INTVL:
             actualValue = atoi(value);
-            if (!IsNumStr(value) || actualValue <= 0 || actualValue > MAX_PERIOD) {
+            if (!IsNumStr(value) || actualValue < 5 || actualValue > MAX_PERIOD) {
                 Logger(ERROR, MD_NM_CFG, "Policy_update_interval in config is invalid");
                 return ERR_INVALIDE_PARAM;
             }
