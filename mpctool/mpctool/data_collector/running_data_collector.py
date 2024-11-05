@@ -79,7 +79,7 @@ def _sys_prober():
 
 def _check_cpu_usage(usage):
     if usage > CST.CPU_USAGE_STOP_TH:
-        logging.warning("Collecting stoped. cpu_percent:%0.1f%%", usage)
+        logging.warning("Collecting stopped. cpu_percent:%0.1f%%", usage)
         return False
     return True
 
@@ -109,7 +109,7 @@ def _loop_to_stable_state(interval, is_last_speed):
                 unstable_data.drop(unstable_data.index, inplace=True)
                 return CST.COLL_STATE_VALID, unstable_data
         else:
-            logging.warning("Exception happens, the collecting stoped. ret: %s, is_last_speed: %d",
+            logging.warning("Exception happens, the collecting stopped. ret: %s, is_last_speed: %d",
                             ret, is_last_speed)
             if is_last_speed:
                 # keep the unstable_data

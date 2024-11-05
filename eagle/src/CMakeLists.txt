@@ -37,10 +37,10 @@ install (FILES "${PROJECT_SOURCE_DIR}/../conf/eagle_config.ini" DESTINATION /etc
 install (FILES "${PROJECT_SOURCE_DIR}/../conf/eagle_policy.ini" DESTINATION /etc/eagle)
 install (FILES "${PROJECT_SOURCE_DIR}/../eagle.service" DESTINATION /usr/lib/systemd/system)
 
-# release complile mode
+# release compile mode
 #set(CMAKE_BUILD_TYPE "Release")
 #set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
-# debug complile mode
+# debug compile mode
 set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow -Wstrict-prototypes -Wmissing-prototypes -Werror")

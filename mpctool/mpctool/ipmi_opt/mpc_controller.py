@@ -30,7 +30,7 @@ def get_sys_state(content):
     """
     Request: collecting current state
     Response format: db 07 00 44 01 1c 28 22 00 28 00
-    Bytes descripton:
+    Bytes description:
     1       Completion code
     2:4     flag. fixed: OXdb0700
     5:6     Total power
@@ -74,7 +74,7 @@ def get_device_changed_event():
     """
     Request: Query if training is required.
     Response format: db 07 00 01 00 01 00
-    Bytes descripton:
+    Bytes description:
     1       Completion code
     2:4     flag. fixed: OXdb0700 
     5:6     Version ID
@@ -127,7 +127,7 @@ def send_model_to_bmc(change_version, inlet_temp, stable_power, lowest_fanspeed,
     N+1     lowest fan speed
 
     Response format: db 07 00
-    Rsp Bytes descripton:
+    Rsp Bytes description:
     1       Completion code
     2:4     flag. fixed: OXdb0700
     5       status. 00: Succeed ff: failed
