@@ -10,7 +10,7 @@
  * See the Mulan PSL v2 for more details.
  * Author: luocaimin
  * Create: 2022-03-29
- * Description: provide const value defination
+ * Description: provide const value definition
  * **************************************************************************** */
 #ifndef EAGLE_COMMON_H__
 #define EAGLE_COMMON_H__

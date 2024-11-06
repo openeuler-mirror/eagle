@@ -142,7 +142,7 @@ int NumRangeChk(const char *pStr, long min, long max)
     }
     return 1;
 }
-// Find the last nonspace postion, return pointer
+// Find the last nonspace position, return pointer
 char *Rtrim(char *s)
 {
     if (s == NULL) {
