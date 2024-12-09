@@ -101,7 +101,7 @@ int SRV_SetLogCallback(void(LogCallback)(int, const char *, const char *, va_lis
 
 int SRV_Init(void)
 {
-    SrvLog(INFO, "freq_sevice initialized.");
+    SrvLog(INFO, "freq_service initialized.");
     int ret = PwrapiCpuGetFreqGovernor(freq_origin_gov, PWR_MAX_ELEMENT_NAME_LEN);
     if (ret != SUCCESS) {
         SrvLog(ERROR, "Failed to get origin freq governor, ret is %d.", ret);
