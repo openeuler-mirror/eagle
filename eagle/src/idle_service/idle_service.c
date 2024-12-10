@@ -74,7 +74,7 @@ int SRV_SetLogCallback(void(LogCallback)(int, const char *, const char *, va_lis
 
 int SRV_Init(void)
 {
-    SrvLog(INFO, "idle_sevice initialized.");
+    SrvLog(INFO, "idle_service initialized.");
 
     int ret = PwrapiCpuGetIdleGovernor(idle_origin_gov, PWR_MAX_ELEMENT_NAME_LEN);
     if(ret != SUCCESS) {
