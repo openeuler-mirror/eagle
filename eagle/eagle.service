@@ -1,5 +1,7 @@
 [Unit]
 Description= Eagle Service. 
+After=pwrapis.service
+Requires=pwrapis.service
 
 [Service]
 ExecStart=/usr/sbin/eagle  /etc/eagle/eagle_config.ini
